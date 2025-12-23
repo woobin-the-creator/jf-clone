@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useMemo } from "react";
 import DetailedInfoModal from "@/components/menu1/DetailedInfoModal";
 import CommentModal from "@/components/menu1/CommentModal";
@@ -9,7 +7,7 @@ import RequestTable from "@/components/menu1/RequestTable";
 import { useMenu1State } from "@/hooks/useMenu1State";
 import { useMenu1Data } from "@/hooks/useMenu1Data";
 import type { RequestSubmission } from "@/types/menu1.types";
-import { filterData, downloadCSV, getUniqueValues, ITEMS_PER_PAGE } from "@/utils/menu1.utils";
+import { filterData, downloadCSV, ITEMS_PER_PAGE } from "@/utils/menu1.utils";
 
 export default function Menu1() {
   // ==================== DATA ====================
