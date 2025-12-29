@@ -49,6 +49,7 @@ export default function Menu1() {
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
   const [pendingAssigneeUpdate, setPendingAssigneeUpdate] = useState<{ id: number; assignee: string } | null>(null);
   const [comment, setComment] = useState("");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // ==================== HANDLERS ====================
   const handleRowClick = (submission: RequestSubmission) => {
@@ -91,10 +92,16 @@ export default function Menu1() {
   };
 
   const handleDownloadCSV = async () => {
+    if (isDownloading) return; // 중복 클릭 방지
+
+    setIsDownloading(true);
     try {
       await downloadCSV();
     } catch (error) {
       console.error("CSV 다운로드 실패:", error);
+      alert("CSV 다운로드에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -113,7 +120,8 @@ export default function Menu1() {
           dateFilter={filters.dateFilter}
           onDateFilterChange={(dateFilter) => setFilters((prev) => ({ ...prev, dateFilter }))}
           onDownloadCSV={handleDownloadCSV}
-          isDownloadDisabled={isLoading}
+          isDownloadDisabled={isLoading || isDownloading}
+          isDownloading={isDownloading}
           isBusy={isLoading || isPageTransitioning}
           pagination={
             <PaginationControls

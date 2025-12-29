@@ -70,7 +70,7 @@ def export_request_submissions_csv(request):
 
         writer = csv.writer(response)
 
-        # CSV 헤더 (content, excel_1, excel_2 제외한 26개 필드)
+        # CSV 헤더 (content, excel_1, excel_2 제외한 27개 필드)
         headers = [
             'ID',
             '부서',
@@ -80,6 +80,7 @@ def export_request_submissions_csv(request):
             '상신 시간',
             'Line ID',
             'PPID',
+            'EQPID',
             '변경의뢰 항목',
             'Max TAT',
             '상태',
@@ -113,6 +114,7 @@ def export_request_submissions_csv(request):
                 submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') if submission.submitted_at else '',
                 submission.line_id or '',
                 submission.ppid or '',
+                submission.eqpid or '',
                 submission.change_request_items or '',
                 submission.Max_TAT if submission.Max_TAT is not None else '',
                 submission.status or '',
