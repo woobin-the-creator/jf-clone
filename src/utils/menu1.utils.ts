@@ -112,39 +112,34 @@ export const filterData = (
 };
 
 /**
- * CSV 파일 다운로드
+ * CSV 파일 다운로드 (백엔드 API 호출)
+ * DB 전체 데이터를 CSV로 내보내기
  */
-export const downloadCSV = (data: RequestSubmission[]): void => {
-  if (!data.length) return;
+export const downloadCSV = async (): Promise<void> => {
+  try {
+    const response = await fetch("/api/request-submissions/export-csv", {
+      method: "GET",
+      credentials: "include",
+    });
 
-  const headers = ["Line ID", "PPID", "Max TAT", "변경의뢰 항목", "제목", "상신자", "의뢰날짜", "상태", "담당자"];
+    if (!response.ok) {
+      throw new Error("CSV 다운로드에 실패했습니다.");
+    }
 
-  const csvContent = [
-    headers.join(","),
-    ...data.map((submission) =>
-      [
-        submission.line_id || "",
-        submission.ppid || "",
-        submission.Max_TAT != null ? String(submission.Max_TAT) : "",
-        `"${(submission.change_request_items || "").replace(/"/g, '""')}"`,
-        `"${(submission.title || "").replace(/"/g, '""')}"`,
-        submission.submitted_by || "",
-        formatDate(submission.submitted_at),
-        submission.status || "내부결재대기중",
-        submission.assignee || "",
-      ].join(",")
-    ),
-  ].join("\n");
-
-  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  link.setAttribute("href", url);
-  link.setAttribute("download", `의뢰상신목록_${new Date().toISOString().split("T")[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+    // Blob으로 변환 후 다운로드
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `request_submissions_${new Date().toISOString().split("T")[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("CSV 다운로드 오류:", error);
+    throw error;
+  }
 };
 
 /**

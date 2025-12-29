@@ -90,8 +90,12 @@ export default function Menu1() {
     setComment("");
   };
 
-  const handleDownloadCSV = () => {
-    downloadCSV(filteredData);
+  const handleDownloadCSV = async () => {
+    try {
+      await downloadCSV();
+    } catch (error) {
+      console.error("CSV 다운로드 실패:", error);
+    }
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -109,7 +113,7 @@ export default function Menu1() {
           dateFilter={filters.dateFilter}
           onDateFilterChange={(dateFilter) => setFilters((prev) => ({ ...prev, dateFilter }))}
           onDownloadCSV={handleDownloadCSV}
-          isDownloadDisabled={!filteredData.length}
+          isDownloadDisabled={isLoading}
           isBusy={isLoading || isPageTransitioning}
           pagination={
             <PaginationControls
