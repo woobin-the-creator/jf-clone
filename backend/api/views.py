@@ -1,21 +1,20 @@
 import csv
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
-# KST (GMT+9) 변환을 위한 시간차
-KST_OFFSET = timedelta(hours=9)
+# KST timezone (GMT+9)
+KST = timezone(timedelta(hours=9))
 
 
 def format_datetime_kst(dt):
-    """GMT datetime을 KST로 변환하여 문자열로 반환"""
+    """datetime을 KST로 변환하여 문자열로 반환"""
     if not dt:
         return ''
-    kst_dt = dt + KST_OFFSET
-    return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
+    return dt.astimezone(KST).strftime('%Y-%m-%d %H:%M:%S')
 
 from .models import RequestSubmission
 from .serializers import RequestSubmissionSerializer
