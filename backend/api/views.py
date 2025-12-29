@@ -1,20 +1,11 @@
 import csv
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from django.http import HttpResponse
+from django.utils.timezone import localtime
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-
-# KST timezone (GMT+9)
-KST = timezone(timedelta(hours=9))
-
-
-def format_datetime_kst(dt):
-    """datetime을 KST로 변환하여 문자열로 반환"""
-    if not dt:
-        return ''
-    return dt.astimezone(KST).strftime('%Y-%m-%d %H:%M:%S')
 
 from .models import RequestSubmission
 from .serializers import RequestSubmissionSerializer
@@ -115,13 +106,14 @@ def export_request_submissions_csv(request):
 
         # 데이터 행 작성
         for submission in submissions:
+            fmt = lambda dt: localtime(dt).strftime('%Y-%m-%d %H:%M:%S') if dt else ''
             row = [
                 submission.id,
                 submission.part or '',
                 submission.title or '',
                 submission.submitted_by or '',
                 submission.mail_knox or '',
-                format_datetime_kst(submission.submitted_at),
+                fmt(submission.submitted_at),
                 submission.line_id or '',
                 submission.ppid or '',
                 submission.eqpid or '',
@@ -135,15 +127,15 @@ def export_request_submissions_csv(request):
                 submission.comment_assign or '',
                 submission.comment_reject or '',
                 submission.comment_approve or '',
-                format_datetime_kst(submission.assigned_at),
+                fmt(submission.assigned_at),
                 submission.assigned_by or '',
-                format_datetime_kst(submission.rejected_at),
+                fmt(submission.rejected_at),
                 submission.rejected_by or '',
-                format_datetime_kst(submission.approved_at),
+                fmt(submission.approved_at),
                 submission.approved_by or '',
-                format_datetime_kst(submission.internal_approved_at),
-                format_datetime_kst(submission.created_at),
-                format_datetime_kst(submission.updated_at),
+                fmt(submission.internal_approved_at),
+                fmt(submission.created_at),
+                fmt(submission.updated_at),
             ]
             writer.writerow(row)
 
