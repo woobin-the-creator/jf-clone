@@ -1,10 +1,21 @@
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+
+# KST (GMT+9) 변환을 위한 시간차
+KST_OFFSET = timedelta(hours=9)
+
+
+def format_datetime_kst(dt):
+    """GMT datetime을 KST로 변환하여 문자열로 반환"""
+    if not dt:
+        return ''
+    kst_dt = dt + KST_OFFSET
+    return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
 from .models import RequestSubmission
 from .serializers import RequestSubmissionSerializer
@@ -70,7 +81,7 @@ def export_request_submissions_csv(request):
 
         writer = csv.writer(response)
 
-        # CSV 헤더 (content, excel_1, excel_2 제외한 26개 필드)
+        # CSV 헤더 (content, excel_1, excel_2 제외한 27개 필드)
         headers = [
             'ID',
             '부서',
@@ -80,6 +91,7 @@ def export_request_submissions_csv(request):
             '상신 시간',
             'Line ID',
             'PPID',
+            'EQPID',
             '변경의뢰 항목',
             'Max TAT',
             '상태',
@@ -110,9 +122,10 @@ def export_request_submissions_csv(request):
                 submission.title or '',
                 submission.submitted_by or '',
                 submission.mail_knox or '',
-                submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') if submission.submitted_at else '',
+                format_datetime_kst(submission.submitted_at),
                 submission.line_id or '',
                 submission.ppid or '',
+                submission.eqpid or '',
                 submission.change_request_items or '',
                 submission.Max_TAT if submission.Max_TAT is not None else '',
                 submission.status or '',
@@ -123,15 +136,15 @@ def export_request_submissions_csv(request):
                 submission.comment_assign or '',
                 submission.comment_reject or '',
                 submission.comment_approve or '',
-                submission.assigned_at.strftime('%Y-%m-%d %H:%M:%S') if submission.assigned_at else '',
+                format_datetime_kst(submission.assigned_at),
                 submission.assigned_by or '',
-                submission.rejected_at.strftime('%Y-%m-%d %H:%M:%S') if submission.rejected_at else '',
+                format_datetime_kst(submission.rejected_at),
                 submission.rejected_by or '',
-                submission.approved_at.strftime('%Y-%m-%d %H:%M:%S') if submission.approved_at else '',
+                format_datetime_kst(submission.approved_at),
                 submission.approved_by or '',
-                submission.internal_approved_at.strftime('%Y-%m-%d %H:%M:%S') if submission.internal_approved_at else '',
-                submission.created_at.strftime('%Y-%m-%d %H:%M:%S') if submission.created_at else '',
-                submission.updated_at.strftime('%Y-%m-%d %H:%M:%S') if submission.updated_at else '',
+                format_datetime_kst(submission.internal_approved_at),
+                format_datetime_kst(submission.created_at),
+                format_datetime_kst(submission.updated_at),
             ]
             writer.writerow(row)
 
