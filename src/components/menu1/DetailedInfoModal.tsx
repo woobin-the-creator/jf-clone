@@ -76,6 +76,7 @@ export default function DetailedInfoModal({
           handleDeleteConfirm={actions.handleDeleteConfirm}
           isApproving={actions.isApproving}
           isRejecting={actions.isRejecting}
+          isCanceling={actions.isCanceling}
           isDeleting={actions.isDeleting}
         />
 
