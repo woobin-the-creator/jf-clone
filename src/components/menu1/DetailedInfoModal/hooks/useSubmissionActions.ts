@@ -54,7 +54,38 @@ export function useSubmissionActions({
   const isMaxTatValid =
     parsedMaxTat === null || (!Number.isNaN(parsedMaxTat) && parsedMaxTat >= 0);
 
-  // 삭제 mutation
+  // 상신 취소 mutation
+  const cancelSubmissionMutation = useMutation({
+    mutationFn: async ({ id, comment }: { id: number; comment?: string }) => {
+      const payload: { action: string; comment?: string } = { action: "cancel" };
+      if (comment) {
+        payload.comment = comment;
+      }
+      return await apiRequest("PUT", `/api/request-submissions/${id}`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/request-submissions"] });
+      handleCommentModalClose();
+      toast({ title: "상신 취소 완료", description: "의뢰가 성공적으로 취소되었습니다." });
+    },
+    onError: (error: any) => {
+      if (error.status === 401) {
+        toast({
+          title: "세션 만료",
+          description: error.data?.["401_UNAUTHORIZED"] || "세션이 만료되었습니다. 새로고침 후 재진행해주세요.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "상신 취소 실패",
+          description: error.data?.error || error.message || "의뢰 취소 중 오류가 발생했습니다.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  // 삭제 mutation (기존 삭제 기능용)
   const deleteSubmissionMutation = useMutation({
     mutationFn: async ({ id, comment }: { id: number; comment?: string }) => {
       const payload: { comment?: string } = {};
@@ -218,7 +249,7 @@ export function useSubmissionActions({
         rejected_by: currentUsername,
       });
     } else if (commentMode === "cancel" && pendingCancelId) {
-      deleteSubmissionMutation.mutate({
+      cancelSubmissionMutation.mutate({
         id: pendingCancelId,
         comment: cancelComment.trim() || undefined,
       });
@@ -310,6 +341,7 @@ export function useSubmissionActions({
       isPending:
         approveSubmissionMutation.isPending ||
         rejectSubmissionMutation.isPending ||
+        cancelSubmissionMutation.isPending ||
         deleteSubmissionMutation.isPending,
       mode: commentMode,
     },
@@ -324,6 +356,7 @@ export function useSubmissionActions({
     // 로딩 상태
     isApproving: approveSubmissionMutation.isPending,
     isRejecting: rejectSubmissionMutation.isPending,
+    isCanceling: cancelSubmissionMutation.isPending,
     isDeleting: deleteSubmissionMutation.isPending,
   };
 }

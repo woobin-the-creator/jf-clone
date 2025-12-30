@@ -52,6 +52,14 @@ const getStatusConfig = (status?: string) => {
         dot: "bg-red-500",
         text: "반려",
       };
+    case "상신취소":
+      return {
+        color: "text-purple-700",
+        bg: "bg-purple-50",
+        border: "border-purple-200",
+        dot: "bg-purple-500",
+        text: "상신취소",
+      };
     case "대기중":
     default:
       return {
@@ -84,6 +92,7 @@ interface SidebarProps {
   // 로딩 상태
   isApproving: boolean;
   isRejecting: boolean;
+  isCanceling: boolean;
   isDeleting: boolean;
 }
 
@@ -104,6 +113,7 @@ export function Sidebar({
   handleDeleteConfirm,
   isApproving,
   isRejecting,
+  isCanceling,
   isDeleting,
 }: SidebarProps) {
   const statusConfig = getStatusConfig(submission.status);
@@ -316,11 +326,11 @@ export function Sidebar({
               variant="outline"
               size="sm"
               onClick={() => handleCancelClick(submission.id)}
-              disabled={isDeleting}
+              disabled={isCanceling}
               className="w-full gap-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-300 text-[13px] h-8"
             >
               <Ban className="h-4 w-4" />
-              {isDeleting ? "취소중..." : "상신 취소"}
+              {isCanceling ? "취소중..." : "상신 취소"}
             </Button>
           )}
 
@@ -351,6 +361,11 @@ export function Sidebar({
         {submission.status === "반려" && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-2">
             <p className="text-[13px] text-red-700 text-center font-medium">✗ 반려됨</p>
+          </div>
+        )}
+        {submission.status === "상신취소" && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-2">
+            <p className="text-[13px] text-purple-700 text-center font-medium">⊘ 상신 취소됨</p>
           </div>
         )}
       </div>
