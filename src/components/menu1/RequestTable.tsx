@@ -225,6 +225,8 @@ export default function RequestTable({
                         ? "reject_step"
                         : submission.status === "작성완료"
                         ? "complete_step"
+                        : submission.status === "상신취소"
+                        ? "cancel_step"
                         : "outline"
                     }
                     className="text-xs px-2 py-1 inline-flex items-center justify-center w-[110px] h-[45px] whitespace-nowrap overflow-hidden text-ellipsis"
