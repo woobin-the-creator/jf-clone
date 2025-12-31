@@ -59,6 +59,15 @@ export const getTimelineData = (submission: RequestSubmission): TimelineRow[] =>
 
   // 🆕 #1-1. 상신취소
   if (status === "상신취소") {
+    // 디버깅: comment_cancel 값 확인
+    console.log("🔍 상신취소 디버깅:", {
+      id: submission.id,
+      comment_cancel: submission.comment_cancel,
+      comment_cancel_type: typeof submission.comment_cancel,
+      comment_cancel_length: submission.comment_cancel?.length,
+      full_submission: submission,
+    });
+
     baseRows[0] = {
       ...baseRows[0],
       status: "상신 취소",
