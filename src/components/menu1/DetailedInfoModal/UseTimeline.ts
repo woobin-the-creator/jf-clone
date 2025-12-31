@@ -1,1 +1,31 @@
-// 해당 파일은 원본 프로젝트 폴더 트리 구조를 모방하기 위해 예시로 생성된 목업파일입니다. 사용자에게 실제 원본 파일 내용물을 요구하고, 그 내용을 참고하여 작업하세요.
+// components/menu1/DetailedInfoModal/useTimeline.ts
+import { useMemo } from "react";
+import { getTimelineData, getTimelineProgress } from "./Timeline.utils";
+import type { RequestSubmission } from "@/types/submission";
+import type { TimelineRow, TimelineProgress } from "./Timeline.types";
+
+interface UseTimelineReturn {
+  timelineData: TimelineRow[];
+  progress: TimelineProgress;
+}
+
+/**
+ * 타임라인 데이터와 진행 상태를 관리하는 Hook
+ */
+export const useTimeline = (
+  submission: RequestSubmission | null
+): UseTimelineReturn => {
+  const timelineData = useMemo(() => {
+    if (!submission) return [];
+    return getTimelineData(submission);
+  }, [submission]);
+
+  const progress = useMemo(() => {
+    return getTimelineProgress(timelineData);
+  }, [timelineData]);
+
+  return {
+    timelineData,
+    progress,
+  };
+};
