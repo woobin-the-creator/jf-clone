@@ -1,1 +1,21 @@
-// 해당 파일은 원본 프로젝트 폴더 트리 구조를 모방하기 위해 예시로 생성된 목업파일입니다. 사용자에게 실제 원본 파일 내용물을 요구하고, 그 내용을 참고하여 작업하세요.
+// components/menu1/DetailedInfoModal/timeline.types.ts
+
+export interface TimelineRow {
+    order: number;
+    category: string;
+    status: string;
+    statusType: "pending" | "waiting" | "completed" | "rejected" | "canceled" | "none";
+    assignee: string;
+    datetime: string;
+    content: string;
+  }
+
+  export interface TimelineProgress {
+    percentage: number;
+    completedSteps: number;
+    totalSteps: number;
+    currentStepName: string;
+    currentStepStatus: string;
+    isRejected: boolean;
+    isCanceled: boolean;
+  }

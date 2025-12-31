@@ -54,10 +54,10 @@ const getStatusConfig = (status?: string) => {
       };
     case "상신취소":
       return {
-        color: "text-purple-700",
-        bg: "bg-purple-50",
-        border: "border-purple-200",
-        dot: "bg-purple-500",
+        color: "text-gray-700",
+        bg: "bg-gray-50",
+        border: "border-gray-200",
+        dot: "bg-gray-500",
         text: "상신취소",
       };
     case "대기중":
@@ -327,7 +327,7 @@ export function Sidebar({
               size="sm"
               onClick={() => handleCancelClick(submission.id)}
               disabled={isCanceling}
-              className="w-full gap-1.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-300 text-[13px] h-8"
+              className="w-full gap-1.5 text-gray-600 hover:text-gray-700 hover:bg-gray-50 border-gray-300 text-[13px] h-8"
             >
               <Ban className="h-4 w-4" />
               {isCanceling ? "취소중..." : "상신 취소"}
@@ -364,8 +364,8 @@ export function Sidebar({
           </div>
         )}
         {submission.status === "상신취소" && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-2">
-            <p className="text-[13px] text-purple-700 text-center font-medium">⊘ 상신 취소됨</p>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-2">
+            <p className="text-[13px] text-gray-700 text-center font-medium">⊘ 상신 취소됨</p>
           </div>
         )}
       </div>
