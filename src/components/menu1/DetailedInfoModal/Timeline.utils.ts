@@ -59,14 +59,15 @@ export const getTimelineData = (submission: RequestSubmission): TimelineRow[] =>
 
   // 🆕 #1-1. 상신취소
   if (status === "상신취소") {
-    baseRows[1] = {
-      ...baseRows[1],
+    baseRows[0] = {
+      ...baseRows[0],
       status: "상신 취소",
       statusType: "canceled",
       assignee: submission.submitted_by || "-",
       datetime: formatDateTime(submission.canceled_at || submission.updated_at),
       content: submission.comment_cancel || "",
     };
+    // 나머지 단계들은 none 상태로 유지 (비활성화)
     return baseRows;
   }
 
