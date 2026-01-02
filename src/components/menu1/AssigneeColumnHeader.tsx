@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useState, useMemo } from "react";
 import type { ColumnFilter } from "./ColumnHeader";
 import type { Calendar } from "@/types/menu1.types";
@@ -24,7 +25,7 @@ export default function AssigneeColumnHeader({
   currentFilter
 }: AssigneeColumnHeaderProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedKnoxIds, setSelectedKnoxIds] = useState<string[]>(currentFilter?.values || []);
+  const [selectedKnoxId, setSelectedKnoxId] = useState<string>(currentFilter?.values?.[0] || "");
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | undefined>(currentFilter?.sortOrder);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -56,12 +57,13 @@ export default function AssigneeColumnHeader({
 
   const handleApply = () => {
     // knox_id로 필터링 (이름이 아닌!)
-    onFilterChange(column, selectedKnoxIds, sortOrder);
+    // 단일 선택이므로 배열로 감싸서 전달
+    onFilterChange(column, selectedKnoxId ? [selectedKnoxId] : [], sortOrder);
     setIsOpen(false);
   };
 
   const handleClear = () => {
-    setSelectedKnoxIds([]);
+    setSelectedKnoxId("");
     setSortOrder(undefined);
     onFilterChange(column, [], undefined);
     setIsOpen(false);
@@ -102,23 +104,16 @@ export default function AssigneeColumnHeader({
             className="mb-2"
           />
 
-          <div className="max-h-40 overflow-y-auto space-y-1">
+          <RadioGroup value={selectedKnoxId} onValueChange={setSelectedKnoxId} className="max-h-40 overflow-y-auto space-y-1">
             {filteredOptions.map((option) => (
               <div key={option.knoxId} className="flex items-center space-x-2">
-                <Checkbox
-                  checked={selectedKnoxIds.includes(option.knoxId)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedKnoxIds([...selectedKnoxIds, option.knoxId]);
-                    } else {
-                      setSelectedKnoxIds(selectedKnoxIds.filter(id => id !== option.knoxId));
-                    }
-                  }}
-                />
-                <span className="text-sm">{option.name}</span>
+                <RadioGroupItem value={option.knoxId} id={`assignee-${option.knoxId}`} />
+                <Label htmlFor={`assignee-${option.knoxId}`} className="text-sm cursor-pointer flex-1">
+                  {option.name}
+                </Label>
               </div>
             ))}
-          </div>
+          </RadioGroup>
 
           <DropdownMenuSeparator />
 
