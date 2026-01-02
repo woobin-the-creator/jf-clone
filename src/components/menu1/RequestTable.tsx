@@ -2,9 +2,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import ColumnHeader, { type ColumnFilter } from "@/components/menu1/ColumnHeader";
+import AssigneeColumnHeader from "@/components/menu1/AssigneeColumnHeader";
 import SelectAssignee from "@/components/menu1/SelectAssignee";
 import type { RequestSubmission, Calendar } from "@/types/menu1.types";
-import { FIXED_WIDTHS, formatDate, getUniqueValues, calculateMaxAssigneeWidth } from "@/utils/menu1.utils";
+import { FIXED_WIDTHS, formatDate, getUniqueValues, getUniqueAssignees, calculateMaxAssigneeWidth } from "@/utils/menu1.utils";
 
 interface RequestTableProps {
   paginatedData: RequestSubmission[];
@@ -117,7 +118,14 @@ export default function RequestTable({
             </TableHead>
 
             <TableHead className="text-sm text-center whitespace-nowrap px-2" style={{ minWidth: `${maxAssigneeWidth}px` }}>
-              담당자
+              <AssigneeColumnHeader
+                column="assignee"
+                title="담당자"
+                data={getUniqueAssignees(allData)}
+                empInfoData={empInfoData}
+                onFilterChange={onColumnFilter}
+                currentFilter={columnFilters.find((f) => f.column === "assignee")}
+              />
             </TableHead>
           </TableRow>
         </TableHeader>
