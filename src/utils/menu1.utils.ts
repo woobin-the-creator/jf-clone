@@ -1,6 +1,6 @@
 import { format, parseISO, isValid } from "date-fns";
 import { ko } from "date-fns/locale";
-import type { RequestSubmission, FilterState } from "@/types/menu1.types";
+import type { RequestSubmission, FilterState, Calendar } from "@/types/menu1.types";
 
 // ==================== CONSTANTS ====================
 
@@ -64,16 +64,38 @@ export const getUniqueValues = (
  */
 export const filterData = (
   data: RequestSubmission[],
-  filters: FilterState
+  filters: FilterState,
+  empInfoData?: Calendar[]
 ): RequestSubmission[] => {
   let filtered = data;
 
   // 검색어 필터
   if (filters.searchTerm) {
     const searchLower = filters.searchTerm.toLowerCase();
-    filtered = filtered.filter((item) =>
-      Object.values(item).some((value) => String(value).toLowerCase().includes(searchLower))
-    );
+
+    // knox_id → 이름 매핑 생성
+    const employeeMap = new Map<string, Calendar>();
+    if (empInfoData) {
+      empInfoData.forEach(emp => {
+        employeeMap.set(String(emp.knox_id), emp);
+      });
+    }
+
+    filtered = filtered.filter((item) => {
+      // 기본 필드 검색 (모든 필드)
+      const basicMatch = Object.values(item).some((value) =>
+        String(value).toLowerCase().includes(searchLower)
+      );
+
+      // 담당자 이름 검색 (knox_id → 이름 변환)
+      const assigneeMatch = item.assignee && empInfoData
+        ? item.assignee.split(',')
+            .map(id => employeeMap.get(id.trim())?.name || '')
+            .some(name => name.toLowerCase().includes(searchLower))
+        : false;
+
+      return basicMatch || assigneeMatch;
+    });
   }
 
   // 날짜 필터
