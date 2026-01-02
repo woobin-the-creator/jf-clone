@@ -60,6 +60,46 @@ export const getUniqueValues = (
 };
 
 /**
+ * 모든 담당자 knox_id 개별 추출 (중복 제거)
+ * 예: ["12345,67890", "12345", "99999"] → ["12345", "67890", "99999"]
+ */
+export const getUniqueAssignees = (
+  data: RequestSubmission[] | undefined
+): string[] => {
+  if (!data) return [];
+
+  const allAssignees = data
+    .map(item => item.assignee)
+    .filter(Boolean)
+    .flatMap(assigneeStr =>
+      assigneeStr!.split(',').map(id => id.trim())
+    )
+    .filter(Boolean);
+
+  return Array.from(new Set(allAssignees)).sort();
+};
+
+/**
+ * knox_id 배열을 이름 배열로 변환
+ */
+export const getUniqueAssigneeNames = (
+  data: RequestSubmission[] | undefined,
+  empInfoData: Calendar[]
+): string[] => {
+  const knoxIds = getUniqueAssignees(data);
+
+  const employeeMap = new Map<string, Calendar>();
+  empInfoData.forEach(emp => {
+    employeeMap.set(String(emp.knox_id), emp);
+  });
+
+  return knoxIds
+    .map(id => employeeMap.get(id)?.name || id)
+    .filter(Boolean)
+    .sort();
+};
+
+/**
  * 필터 조건에 따라 데이터 필터링
  */
 export const filterData = (
@@ -112,6 +152,14 @@ export const filterData = (
   filters.columnFilters.forEach((filter) => {
     if (filter.values.length > 0) {
       filtered = filtered.filter((item) => {
+        // 담당자 컬럼: 배열에 포함 여부 체크
+        if (filter.column === 'assignee') {
+          const assignees = item.assignee?.split(',').map(id => id.trim()) || [];
+          // 선택한 knox_id 중 하나라도 담당자에 포함되면 true
+          return filter.values.some(selectedId => assignees.includes(selectedId));
+        }
+
+        // 다른 컬럼: 기존 로직
         const value = String(item[filter.column as keyof RequestSubmission] || "");
         return filter.values.includes(value);
       });
