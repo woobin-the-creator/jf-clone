@@ -31,8 +31,8 @@ export default function Menu1() {
   // ==================== FILTERING ====================
   const filteredData = useMemo(() => {
     if (!submissionsData?.results) return [];
-    return filterData(submissionsData.results, filters);
-  }, [submissionsData?.results, filters]);
+    return filterData(submissionsData.results, filters, empInfoData);
+  }, [submissionsData?.results, filters, empInfoData]);
 
   // ==================== PAGINATION ====================
   const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);

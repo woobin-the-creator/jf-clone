@@ -93,7 +93,7 @@ export default function FilterControls({
             <div className="p-3 border-b">
               <div className="text-sm font-medium mb-2">날짜 범위 선택</div>
               <div className="text-xs text-gray-500 mb-2">
-                첫 번째 클릭: 시작일 / 두 번째 클릭: 종료일
+                시작일과 종료일을 선택하세요
               </div>
               <div className="flex gap-2 text-xs">
                 <div className="flex-1">
@@ -112,27 +112,16 @@ export default function FilterControls({
             </div>
 
             <Calendar
-              mode="single"
-              selected={dateFilter.from || dateFilter.to}
-              onSelect={(date) => {
-                if (!date) return;
-
-                if (!dateFilter.from) {
-                  onDateFilterChange({ from: date, to: undefined });
+              mode="range"
+              selected={{ from: dateFilter.from, to: dateFilter.to }}
+              onSelect={(range) => {
+                if (!range) {
+                  onDateFilterChange({ from: undefined, to: undefined });
                   return;
                 }
-
-                if (!dateFilter.to) {
-                  if (date < dateFilter.from) {
-                    onDateFilterChange({ from: date, to: dateFilter.from });
-                  } else {
-                    onDateFilterChange({ from: dateFilter.from, to: date });
-                  }
-                  return;
-                }
-
-                onDateFilterChange({ from: date, to: undefined });
+                onDateFilterChange({ from: range.from, to: range.to });
               }}
+              numberOfMonths={2}
               initialFocus
             />
 
