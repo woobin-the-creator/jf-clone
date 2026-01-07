@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles } from "lucide-react";
@@ -5,30 +6,12 @@ import { RequestSubmission } from "@shared/schema";
 import { formatDateTime } from "./DashboardUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar } from "@/types/menu1.types";
+import { convertKnoxIdToName } from "@/utils/menu1.utils";
 
 interface WhatsNewSectionProps {
   submissions: RequestSubmission[];
   isLoading: boolean;
 }
-
-/**
- * knox_id를 이름으로 변환하는 함수
- * menu1.utils.ts의 변환 로직과 동일한 패턴 사용
- */
-const convertKnoxIdToName = (
-  knoxIdStr: string | undefined,
-  employeeMap: Map<string, Calendar>
-): string => {
-  if (!knoxIdStr) return "-";
-
-  const names = knoxIdStr
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean)
-    .map((id) => employeeMap.get(id)?.name || id);
-
-  return names.length > 0 ? names.join(", ") : "-";
-};
 
 export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSectionProps) {
   // empInfoData 조회 (knox_id → name 변환용)
@@ -36,11 +19,14 @@ export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSect
     queryKey: ["/api/calendar"],
   });
 
-  // knox_id → Calendar 매핑 생성
-  const employeeMap = new Map<string, Calendar>();
-  empInfoData.forEach((emp) => {
-    employeeMap.set(String(emp.knox_id), emp);
-  });
+  // knox_id → Calendar 매핑 생성 (useMemo로 최적화)
+  const employeeMap = useMemo(() => {
+    const map = new Map<string, Calendar>();
+    empInfoData.forEach((emp) => {
+      map.set(emp.knox_id, emp);
+    });
+    return map;
+  }, [empInfoData]);
 
   return (
     <div className="mb-10">
