@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { RequestSubmission } from "@shared/schema";
 import WhatsNewSection from "@/components/LandingPage/Whatsnewsection";
 import StatusCard, { StatusGrid, statusConfig } from "@/components/LandingPage/StatusCard";
-import { getFilteredSubmissions, getTodayUpdatedSubmissions, isMySubmission } from "@/components/LandingPage/DashboardUtils";
+import { getFilteredSubmissions, getTodayUpdatedSubmissions, isMySubmission, extractUsernameFromEmail } from "@/components/LandingPage/DashboardUtils";
 import { Users, User } from "lucide-react";
 
 interface ApiResponse {
@@ -16,6 +16,12 @@ export default function Dashboard() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [showAllSubmissions, setShowAllSubmissions] = useState(true);
   const { user } = useAuth();
+
+  // user.mail_knox에서 username 추출 (예: "john@example.com" -> "john")
+  const currentUsername = useMemo(
+    () => extractUsernameFromEmail(user?.mail_knox),
+    [user?.mail_knox]
+  );
 
   const { data: submissionsData, isLoading } = useQuery<ApiResponse>({
     queryKey: ['/api/request-submissions'],
@@ -34,7 +40,7 @@ export default function Dashboard() {
   const displaySubmissions = showAllSubmissions
     ? (submissionsData?.results || [])
     : (submissionsData?.results.filter(
-        (submission) => isMySubmission(submission, user?.username)
+        (submission) => isMySubmission(submission, currentUsername)
       ) || []);
 
   // 상태별 통계 계산
@@ -57,7 +63,7 @@ export default function Dashboard() {
       }) || [])
     : getTodayUpdatedSubmissions(
         submissionsData?.results,
-        user?.username
+        currentUsername
       );
 
   const handleCardClick = (status: string) => {
@@ -76,7 +82,7 @@ export default function Dashboard() {
       return getFilteredSubmissions(
         submissionsData?.results,
         status,
-        user?.username
+        currentUsername
       );
     }
   };
