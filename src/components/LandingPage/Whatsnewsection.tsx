@@ -64,17 +64,30 @@ export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSect
                   오늘 업데이트된 의뢰가 없습니다
                 </p>
               ) : (
-                <table className="w-full text-gray-900">
+                <table className="w-full text-gray-900 table-fixed">
                   <thead>
                     <tr className="border-b border-gray-200/50">
-                      {["Line ID", "PPID", "의뢰 제목", "의뢰자", "담당자", "상태", "수정된 시각"].map((header) => (
-                        <th
-                          key={header}
-                          className="text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight"
-                        >
-                          {header}
-                        </th>
-                      ))}
+                      <th className="w-[70px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                        Line ID
+                      </th>
+                      <th className="w-[80px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                        PPID
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
+                        의뢰 제목
+                      </th>
+                      <th className="w-[70px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                        의뢰자
+                      </th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
+                        담당자
+                      </th>
+                      <th className="w-[130px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                        상태
+                      </th>
+                      <th className="w-[150px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                        수정된 시각
+                      </th>
                     </tr>
                   </thead>
 
@@ -94,13 +107,13 @@ export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSect
                           cursor-pointer
                         "
                       >
-                        <td className="py-3 px-4 text-sm">{submission.line_id || '-'}</td>
-                        <td className="py-3 px-4 text-sm">{submission.ppid || '-'}</td>
-                        <td className="py-3 px-4 text-sm font-medium">{submission.title}</td>
-                        <td className="py-3 px-4 text-sm">{submission.submitted_by || '-'}</td>
-                        <td className="py-3 px-4 text-sm">{convertKnoxIdToName(submission.assignee, employeeMap)}</td>
-                        <td className="py-3 px-4 text-sm">{submission.status}</td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
+                        <td className="w-[70px] py-3 px-4 text-sm whitespace-nowrap">{submission.line_id || '-'}</td>
+                        <td className="w-[80px] py-3 px-4 text-sm whitespace-nowrap">{submission.ppid || '-'}</td>
+                        <td className="py-3 px-4 text-sm font-medium truncate">{submission.title}</td>
+                        <td className="w-[70px] py-3 px-4 text-sm whitespace-nowrap">{submission.submitted_by || '-'}</td>
+                        <td className="py-3 px-4 text-sm truncate">{convertKnoxIdToName(submission.assignee, employeeMap)}</td>
+                        <td className="w-[130px] py-3 px-4 text-sm whitespace-nowrap">{submission.status}</td>
+                        <td className="w-[150px] py-3 px-4 text-sm text-gray-600 whitespace-nowrap">
                           {formatDateTime(submission.updated_at)}
                         </td>
                       </tr>
