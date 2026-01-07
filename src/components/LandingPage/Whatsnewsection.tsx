@@ -67,25 +67,25 @@ export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSect
                 <table className="w-full text-gray-900 table-fixed">
                   <thead>
                     <tr className="border-b border-gray-200/50">
-                      <th className="w-[70px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                      <th className="w-[70px] text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
                         Line ID
                       </th>
-                      <th className="w-[80px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                      <th className="w-[80px] text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
                         PPID
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
+                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
                         의뢰 제목
                       </th>
-                      <th className="w-[70px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                      <th className="w-[70px] text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
                         의뢰자
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
+                      <th className="text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight">
                         담당자
                       </th>
-                      <th className="w-[130px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                      <th className="w-[130px] text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
                         상태
                       </th>
-                      <th className="w-[150px] text-left py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
+                      <th className="w-[150px] text-center py-3 px-4 text-sm font-medium text-gray-700 tracking-tight whitespace-nowrap">
                         수정된 시각
                       </th>
                     </tr>
