@@ -90,13 +90,32 @@ export const getUniqueAssigneeNames = (
 
   const employeeMap = new Map<string, Calendar>();
   empInfoData.forEach(emp => {
-    employeeMap.set(String(emp.knox_id), emp);
+    employeeMap.set(emp.knox_id, emp);
   });
 
   return knoxIds
     .map(id => employeeMap.get(id)?.name || id)
     .filter(Boolean)
     .sort();
+};
+
+/**
+ * knox_id 문자열을 이름으로 변환
+ * 쉼표로 구분된 복수 knox_id도 처리
+ */
+export const convertKnoxIdToName = (
+  knoxIdStr: string | undefined,
+  employeeMap: Map<string, Calendar>
+): string => {
+  if (!knoxIdStr) return "-";
+
+  const names = knoxIdStr
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .map((id) => employeeMap.get(id)?.name || id);
+
+  return names.length > 0 ? names.join(", ") : "-";
 };
 
 /**
