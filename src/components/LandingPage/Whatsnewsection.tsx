@@ -32,14 +32,22 @@ export default function WhatsNewSection({ submissions, isLoading }: WhatsNewSect
   const assigneeWidth = useMemo(() => {
     if (submissions.length === 0) return 70; // 기본값
 
-    const maxLength = submissions.reduce((max, sub) => {
+    const maxWidth = submissions.reduce((max, sub) => {
       const assigneeName = convertKnoxIdToName(sub.assignee, employeeMap);
-      return Math.max(max, assigneeName.length);
+      if (assigneeName === "-") return max;
+
+      // 한글만 카운트 (쉼표, 공백 제외)
+      const koreanChars = assigneeName.replace(/[,\s]/g, '').length;
+      const separators = (assigneeName.match(/, /g) || []).length;
+
+      // 한글 14px, ", " 구분자 8px
+      const width = koreanChars * 14 + separators * 8;
+      return Math.max(max, width);
     }, 0);
 
-    // 한글 1글자 ≈ 14px + 좌우 padding 32px, 최소 70px
-    return Math.max(70, maxLength * 14 + 32);
-  }, [submissions, employeeMap]);
+    // 좌우 padding 32px, 최소 70px
+    return Math.max(70, maxWidth + 32);
+  }, [submissions, empInfoData]);
 
   return (
     <div className="mb-10">
