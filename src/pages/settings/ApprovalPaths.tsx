@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ export default function ApprovalPaths() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<AssigneeMember[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 전체 임직원 목록 조회
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Calendar[]>({
@@ -41,11 +42,12 @@ export default function ApprovalPaths() {
   });
 
   // 저장된 멤버 목록이 로드되면 상태에 반영
-  useMemo(() => {
-    if (savedMembers.length > 0 && selectedMembers.length === 0 && !hasChanges) {
+  useEffect(() => {
+    if (!isInitialized && !isLoadingMembers) {
       setSelectedMembers(savedMembers);
+      setIsInitialized(true);
     }
-  }, [savedMembers]);
+  }, [savedMembers, isLoadingMembers, isInitialized]);
 
   // 멤버 목록 저장 mutation
   const saveMembersMutation = useMutation({
