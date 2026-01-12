@@ -17,8 +17,13 @@ def format_datetime_kst(dt):
     kst_dt = dt + KST_OFFSET
     return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
-from .models import RequestSubmission
-from .serializers import RequestSubmissionSerializer
+from .models import RequestSubmission, Calendar, AssigneeMember
+from .serializers import (
+    RequestSubmissionSerializer,
+    CalendarSerializer,
+    AssigneeMemberSerializer,
+    AssigneeMemberBulkSerializer
+)
 
 
 @api_view(['GET', 'POST'])
@@ -150,5 +155,104 @@ def export_request_submissions_csv(request):
 
         return response
 
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def calendar_list_view(request):
+    """
+    calendar 테이블의 모든 데이터를 조회합니다.
+    GET /api/calendar
+
+    Query Parameters:
+    - search: 이름으로 검색 (선택)
+    """
+    if request.method == 'GET':
+        try:
+            queryset = Calendar.objects.all()
+
+            # 검색 파라미터가 있으면 이름으로 필터링
+            search = request.GET.get('search', '').strip()
+            if search:
+                queryset = queryset.filter(name__icontains=search)
+
+            serializer = CalendarSerializer(queryset, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'POST', 'PUT'])
+@permission_classes([AllowAny])
+def assignee_member_view(request):
+    """
+    담당자 멤버 목록 관리
+    GET: 멤버 목록 조회
+    POST: 멤버 추가 (단일)
+    PUT: 멤버 목록 일괄 동기화 (기존 데이터 삭제 후 새 데이터로 교체)
+    """
+    if request.method == 'GET':
+        try:
+            members = AssigneeMember.objects.all().order_by('name')
+            serializer = AssigneeMemberSerializer(members, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'POST':
+        try:
+            serializer = AssigneeMemberSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'PUT':
+        # 일괄 동기화: 기존 멤버 전체 삭제 후 새 멤버 목록으로 교체
+        try:
+            bulk_serializer = AssigneeMemberBulkSerializer(data=request.data)
+            if not bulk_serializer.is_valid():
+                return Response(bulk_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            members_data = bulk_serializer.validated_data['members']
+
+            # 트랜잭션으로 처리: 기존 데이터 삭제 후 새 데이터 삽입
+            from django.db import transaction
+            with transaction.atomic():
+                AssigneeMember.objects.all().delete()
+
+                for member_data in members_data:
+                    AssigneeMember.objects.create(
+                        knox_id=member_data['knox_id'],
+                        name=member_data['name'],
+                        employee_number=member_data['employee_number']
+                    )
+
+            # 새로 저장된 목록 반환
+            members = AssigneeMember.objects.all().order_by('name')
+            serializer = AssigneeMemberSerializer(members, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['DELETE'])
+@permission_classes([AllowAny])
+def assignee_member_delete_view(request, knox_id):
+    """
+    담당자 멤버 삭제
+    DELETE /api/assignee-members/<knox_id>
+    """
+    try:
+        member = AssigneeMember.objects.get(knox_id=knox_id)
+        member.delete()
+        return Response({'message': '삭제되었습니다.'}, status=status.HTTP_200_OK)
+    except AssigneeMember.DoesNotExist:
+        return Response({'error': '멤버를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

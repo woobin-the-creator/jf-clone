@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
 import { Check } from "lucide-react";
@@ -15,11 +14,12 @@ interface RequestSubmission {
   assignee?: string;
 }
 
-interface Calendar {
+interface AssigneeMember {
+  id?: number;
+  knox_id: string;
   name: string;
   employee_number: string;
-  part: string;
-  knox_id: string;
+  created_at?: string;
 }
 
 interface SelectAssigneeProps {
@@ -36,27 +36,26 @@ export default function SelectAssignee({ submission, onAssigneeChange }: SelectA
   const [isOpen, setIsOpen] = useState(false);
   const [selectedKnoxIds, setSelectedKnoxIds] = useState<string[]>([]);
 
-  const { data: empInfoData = [], isLoading } = useQuery<Calendar[]>({
-    queryKey: ['/api/calendar'],
+  // 담당자 멤버 목록 조회 (ApprovalPaths에서 설정한 멤버들)
+  const { data: assigneeMembers = [], isLoading } = useQuery<AssigneeMember[]>({
+    queryKey: ['/api/assignee-members'],
   });
 
-  const JobFileTeamMembers = empInfoData?.filter(emp => emp.part === "공통_PHOTO_혁신_투자생산") || [];
-
-  const employeeByKnoxId = useMemo(() => {
-    const m = new Map<string, Calendar>();
-    for (const e of empInfoData) m.set(String(e.knox_id), e);
+  const memberByKnoxId = useMemo(() => {
+    const m = new Map<string, AssigneeMember>();
+    for (const member of assigneeMembers) m.set(String(member.knox_id), member);
     return m;
-  }, [empInfoData]);
+  }, [assigneeMembers]);
 
   const displayNames = useMemo(() => {
     if (selectedKnoxIds.length === 0) return "담당자 선택";
 
     const names = selectedKnoxIds
-      .map(id => employeeByKnoxId.get(id)?.name)
+      .map(id => memberByKnoxId.get(id)?.name)
       .filter(Boolean);
 
     return names.join(", ");
-  }, [selectedKnoxIds, employeeByKnoxId]);
+  }, [selectedKnoxIds, memberByKnoxId]);
 
   const hasAssignee = selectedKnoxIds.length > 0;
 
@@ -127,9 +126,9 @@ export default function SelectAssignee({ submission, onAssigneeChange }: SelectA
           <CommandInput placeholder="담당자 검색..." />
           <CommandEmpty>담당자를 찾을 수 없습니다.</CommandEmpty>
           <CommandGroup className="max-h-[300px] overflow-auto">
-            {JobFileTeamMembers.map((member) => (
+            {assigneeMembers.map((member) => (
               <CommandItem
-                key={member.employee_number}
+                key={member.knox_id}
                 value={member.name}
                 onSelect={() => handleToggleAssignee(member.knox_id)}
                 className="flex items-center gap-2 cursor-pointer"
