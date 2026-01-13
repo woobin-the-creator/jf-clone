@@ -81,3 +81,94 @@ class AssigneeMember(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.employee_number})"
+
+
+class FabInfo(models.Model):
+    """
+    Fab 정보 원본 테이블
+    bdq_handler.py에서 1시간 단위로 업데이트됩니다.
+    """
+    ppid_8 = models.CharField(max_length=100, blank=True, null=True, verbose_name='PPID_8')
+    ees_line_id = models.CharField(max_length=100, blank=True, null=True, db_index=True, verbose_name='EES Line ID')
+    mes_line_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='MES Line ID')
+    eqp_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='Equipment ID')
+    proc_model_name = models.CharField(max_length=100, blank=True, null=True, verbose_name='Process Model Name')
+
+    class Meta:
+        db_table = 'fab_info'
+        verbose_name = 'Fab 정보'
+        verbose_name_plural = 'Fab 정보 목록'
+
+    def __str__(self):
+        return f"{self.ees_line_id} - {self.eqp_id}"
+
+
+class FabInfoRule(models.Model):
+    """
+    Fab Info 규칙 테이블
+    ees_line_id 값을 변경하거나 삭제하는 규칙을 저장합니다.
+    """
+    ACTION_CHOICES = [
+        ('replace', '변경'),
+        ('delete', '삭제'),
+    ]
+
+    target_value = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name='대상 값',
+        help_text='변경/삭제할 ees_line_id 값'
+    )
+    action = models.CharField(
+        max_length=10,
+        choices=ACTION_CHOICES,
+        verbose_name='액션',
+        help_text='변경 또는 삭제'
+    )
+    new_value = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True,
+        verbose_name='새 값',
+        help_text='변경 시 새로운 값 (삭제 시 null)'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='생성 시간')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='수정 시간')
+
+    class Meta:
+        db_table = 'fab_info_rule'
+        verbose_name = 'Fab Info 규칙'
+        verbose_name_plural = 'Fab Info 규칙 목록'
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['target_value'],
+                name='unique_fab_info_rule_target_value'
+            )
+        ]
+
+    def __str__(self):
+        if self.action == 'replace':
+            return f"{self.target_value} → {self.new_value}"
+        return f"{self.target_value} (삭제)"
+
+
+class FabInfoFiltered(models.Model):
+    """
+    Fab 정보 가공 테이블
+    FabInfoRule 규칙이 적용된 데이터가 저장됩니다.
+    """
+    ppid_8 = models.CharField(max_length=100, blank=True, null=True, verbose_name='PPID_8')
+    ees_line_id = models.CharField(max_length=100, blank=True, null=True, db_index=True, verbose_name='EES Line ID')
+    mes_line_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='MES Line ID')
+    eqp_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='Equipment ID')
+    proc_model_name = models.CharField(max_length=100, blank=True, null=True, verbose_name='Process Model Name')
+
+    class Meta:
+        db_table = 'fab_info_filtered'
+        verbose_name = 'Fab 정보 (가공)'
+        verbose_name_plural = 'Fab 정보 (가공) 목록'
+
+    def __str__(self):
+        return f"{self.ees_line_id} - {self.eqp_id}"
