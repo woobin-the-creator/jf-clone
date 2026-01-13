@@ -1,10 +1,15 @@
 import csv
+import logging
 from datetime import datetime, timedelta
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+
+from .permissions import IsManager, IsManagerOrReadOnly
+
+logger = logging.getLogger(__name__)
 
 # KST (GMT+9) 변환을 위한 시간차
 KST_OFFSET = timedelta(hours=9)
@@ -266,12 +271,23 @@ def assignee_member_delete_view(request, knox_id):
 # Fab Info 관련 Views
 # ============================================================================
 
+def _handle_error(e, context=""):
+    """내부 에러 로깅 및 안전한 응답 생성"""
+    logger.error(f"[{context}] Internal error: {str(e)}", exc_info=True)
+    return Response(
+        {'error': '서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'},
+        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsManager])
 def fab_info_view(request):
     """
     Fab Info 원본 데이터 조회
     GET /api/fab-info
+
+    권한: MANAGER만 접근 가능
 
     Query Parameters:
     - page: 페이지 번호 (기본값: 1)
@@ -311,29 +327,33 @@ def fab_info_view(request):
         })
 
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return _handle_error(e, "fab_info_view")
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsManager])
 def fab_info_ees_line_ids_view(request):
     """
     Fab Info 테이블에서 중복 제거된 ees_line_id 목록 조회
     GET /api/fab-info/ees-line-ids
+
+    권한: MANAGER만 접근 가능
     """
     try:
         ees_line_ids = get_unique_ees_line_ids()
         return Response({'ees_line_ids': ees_line_ids})
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return _handle_error(e, "fab_info_ees_line_ids_view")
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@permission_classes([IsManager])
 def fab_info_filtered_view(request):
     """
     Fab Info 가공 데이터 조회
     GET /api/fab-info-filtered
+
+    권한: MANAGER만 접근 가능
 
     Query Parameters:
     - page: 페이지 번호 (기본값: 1)
@@ -373,16 +393,18 @@ def fab_info_filtered_view(request):
         })
 
     except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return _handle_error(e, "fab_info_filtered_view")
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsManager])
 def fab_info_rules_view(request):
     """
     Fab Info 규칙 목록 조회 및 생성
     GET: 규칙 목록 조회
     POST: 규칙 생성 (생성 후 자동으로 apply_rules 실행 - C2)
+
+    권한: MANAGER만 접근 가능
     """
     if request.method == 'GET':
         try:
@@ -390,7 +412,7 @@ def fab_info_rules_view(request):
             serializer = FabInfoRuleSerializer(rules, many=True)
             return Response(serializer.data)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return _handle_error(e, "fab_info_rules_view:GET")
 
     elif request.method == 'POST':
         try:
@@ -401,6 +423,8 @@ def fab_info_rules_view(request):
                 # C2: 규칙 생성 후 자동으로 apply_rules 실행
                 apply_result = apply_rules()
 
+                logger.info(f"Rule created: {serializer.data}, apply_result: {apply_result}")
+
                 return Response({
                     'rule': serializer.data,
                     'apply_result': apply_result
@@ -408,17 +432,19 @@ def fab_info_rules_view(request):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return _handle_error(e, "fab_info_rules_view:POST")
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([AllowAny])
+@permission_classes([IsManager])
 def fab_info_rule_detail_view(request, rule_id):
     """
     Fab Info 규칙 상세 조회/수정/삭제
     GET: 규칙 상세 조회
     PUT: 규칙 수정 (수정 후 자동으로 apply_rules 실행 - C2)
     DELETE: 규칙 삭제 (삭제 후 자동으로 apply_rules 실행 - C2)
+
+    권한: MANAGER만 접근 가능
     """
     try:
         rule = FabInfoRule.objects.get(id=rule_id)
@@ -438,6 +464,8 @@ def fab_info_rule_detail_view(request, rule_id):
                 # C2: 규칙 수정 후 자동으로 apply_rules 실행
                 apply_result = apply_rules()
 
+                logger.info(f"Rule updated: {serializer.data}, apply_result: {apply_result}")
+
                 return Response({
                     'rule': serializer.data,
                     'apply_result': apply_result
@@ -445,18 +473,21 @@ def fab_info_rule_detail_view(request, rule_id):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return _handle_error(e, "fab_info_rule_detail_view:PUT")
 
     elif request.method == 'DELETE':
         try:
+            rule_info = str(rule)
             rule.delete()
 
             # C2: 규칙 삭제 후 자동으로 apply_rules 실행
             apply_result = apply_rules()
+
+            logger.info(f"Rule deleted: {rule_info}, apply_result: {apply_result}")
 
             return Response({
                 'message': '규칙이 삭제되었습니다.',
                 'apply_result': apply_result
             })
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return _handle_error(e, "fab_info_rule_detail_view:DELETE")
