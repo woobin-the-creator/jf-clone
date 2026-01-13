@@ -17,13 +17,17 @@ def format_datetime_kst(dt):
     kst_dt = dt + KST_OFFSET
     return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
-from .models import RequestSubmission, Calendar, AssigneeMember
+from .models import RequestSubmission, Calendar, AssigneeMember, FabInfo, FabInfoRule, FabInfoFiltered
 from .serializers import (
     RequestSubmissionSerializer,
     CalendarSerializer,
     AssigneeMemberSerializer,
-    AssigneeMemberBulkSerializer
+    AssigneeMemberBulkSerializer,
+    FabInfoSerializer,
+    FabInfoFilteredSerializer,
+    FabInfoRuleSerializer
 )
+from .fab_info_utils import apply_rules, get_unique_ees_line_ids
 
 
 @api_view(['GET', 'POST'])
@@ -256,3 +260,203 @@ def assignee_member_delete_view(request, knox_id):
         return Response({'error': '멤버를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ============================================================================
+# Fab Info 관련 Views
+# ============================================================================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fab_info_view(request):
+    """
+    Fab Info 원본 데이터 조회
+    GET /api/fab-info
+
+    Query Parameters:
+    - page: 페이지 번호 (기본값: 1)
+    - page_size: 페이지 크기 (기본값: 100)
+    - ees_line_id: ees_line_id 필터
+    - ppid_8: ppid_8 필터
+    - mes_line_id: mes_line_id 필터
+    - eqp_id: eqp_id 필터
+    - proc_model_name: proc_model_name 필터
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 100))
+
+        queryset = FabInfo.objects.all()
+
+        # 필터 적용
+        for field in ['ees_line_id', 'ppid_8', 'mes_line_id', 'eqp_id', 'proc_model_name']:
+            value = request.GET.get(field, '').strip()
+            if value:
+                queryset = queryset.filter(**{f'{field}__icontains': value})
+
+        # 페이지네이션
+        total_count = queryset.count()
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size
+
+        page_data = queryset[start_index:end_index]
+        serializer = FabInfoSerializer(page_data, many=True)
+
+        return Response({
+            'results': serializer.data,
+            'total_count': total_count,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_count + page_size - 1) // page_size if total_count > 0 else 0
+        })
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fab_info_ees_line_ids_view(request):
+    """
+    Fab Info 테이블에서 중복 제거된 ees_line_id 목록 조회
+    GET /api/fab-info/ees-line-ids
+    """
+    try:
+        ees_line_ids = get_unique_ees_line_ids()
+        return Response({'ees_line_ids': ees_line_ids})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def fab_info_filtered_view(request):
+    """
+    Fab Info 가공 데이터 조회
+    GET /api/fab-info-filtered
+
+    Query Parameters:
+    - page: 페이지 번호 (기본값: 1)
+    - page_size: 페이지 크기 (기본값: 100)
+    - ees_line_id: ees_line_id 필터
+    - ppid_8: ppid_8 필터
+    - mes_line_id: mes_line_id 필터
+    - eqp_id: eqp_id 필터
+    - proc_model_name: proc_model_name 필터
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 100))
+
+        queryset = FabInfoFiltered.objects.all()
+
+        # 필터 적용
+        for field in ['ees_line_id', 'ppid_8', 'mes_line_id', 'eqp_id', 'proc_model_name']:
+            value = request.GET.get(field, '').strip()
+            if value:
+                queryset = queryset.filter(**{f'{field}__icontains': value})
+
+        # 페이지네이션
+        total_count = queryset.count()
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size
+
+        page_data = queryset[start_index:end_index]
+        serializer = FabInfoFilteredSerializer(page_data, many=True)
+
+        return Response({
+            'results': serializer.data,
+            'total_count': total_count,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_count + page_size - 1) // page_size if total_count > 0 else 0
+        })
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def fab_info_rules_view(request):
+    """
+    Fab Info 규칙 목록 조회 및 생성
+    GET: 규칙 목록 조회
+    POST: 규칙 생성 (생성 후 자동으로 apply_rules 실행 - C2)
+    """
+    if request.method == 'GET':
+        try:
+            rules = FabInfoRule.objects.all().order_by('-created_at')
+            serializer = FabInfoRuleSerializer(rules, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'POST':
+        try:
+            serializer = FabInfoRuleSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+
+                # C2: 규칙 생성 후 자동으로 apply_rules 실행
+                apply_result = apply_rules()
+
+                return Response({
+                    'rule': serializer.data,
+                    'apply_result': apply_result
+                }, status=status.HTTP_201_CREATED)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([AllowAny])
+def fab_info_rule_detail_view(request, rule_id):
+    """
+    Fab Info 규칙 상세 조회/수정/삭제
+    GET: 규칙 상세 조회
+    PUT: 규칙 수정 (수정 후 자동으로 apply_rules 실행 - C2)
+    DELETE: 규칙 삭제 (삭제 후 자동으로 apply_rules 실행 - C2)
+    """
+    try:
+        rule = FabInfoRule.objects.get(id=rule_id)
+    except FabInfoRule.DoesNotExist:
+        return Response({'error': '규칙을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = FabInfoRuleSerializer(rule)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        try:
+            serializer = FabInfoRuleSerializer(rule, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+
+                # C2: 규칙 수정 후 자동으로 apply_rules 실행
+                apply_result = apply_rules()
+
+                return Response({
+                    'rule': serializer.data,
+                    'apply_result': apply_result
+                })
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    elif request.method == 'DELETE':
+        try:
+            rule.delete()
+
+            # C2: 규칙 삭제 후 자동으로 apply_rules 실행
+            apply_result = apply_rules()
+
+            return Response({
+                'message': '규칙이 삭제되었습니다.',
+                'apply_result': apply_result
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

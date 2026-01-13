@@ -23,6 +23,7 @@ const SETTINGS_MENU_ITEMS = [
   { name: "결재 경로 설정", path: "/settings/approval-paths" },
   { name: "권한 설정", path: "/settings/permissions" },
   { name: "DB 수정", path: "/settings/database-edit" },
+  { name: "Fab_Info 규칙 관리", path: "/settings/fab-info-rules" },
 ];
 
 export function Header() {

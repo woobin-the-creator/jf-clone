@@ -14,4 +14,15 @@ urlpatterns = [
     # 담당자 멤버 관리
     path('assignee-members', views.assignee_member_view, name='assignee-members'),
     path('assignee-members/<str:knox_id>', views.assignee_member_delete_view, name='assignee-member-delete'),
+
+    # Fab Info 원본 데이터
+    path('fab-info', views.fab_info_view, name='fab-info'),
+    path('fab-info/ees-line-ids', views.fab_info_ees_line_ids_view, name='fab-info-ees-line-ids'),
+
+    # Fab Info 가공 데이터
+    path('fab-info-filtered', views.fab_info_filtered_view, name='fab-info-filtered'),
+
+    # Fab Info 규칙 관리
+    path('fab-info-rules', views.fab_info_rules_view, name='fab-info-rules'),
+    path('fab-info-rules/<int:rule_id>', views.fab_info_rule_detail_view, name='fab-info-rule-detail'),
 ]
