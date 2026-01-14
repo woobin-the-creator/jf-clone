@@ -332,6 +332,56 @@ def fab_info_view(request):
 
 @api_view(['GET'])
 @permission_classes([IsManager])
+def fab_info_all_view(request):
+    """
+    Fab Info 원본 데이터 전체 조회 (페이지네이션)
+    GET /api/fab-info-all
+
+    권한: MANAGER만 접근 가능
+
+    Query Parameters:
+    - page: 페이지 번호 (기본값: 1)
+    - page_size: 페이지 크기 (기본값: 100)
+    - ees_line_id: ees_line_id 필터
+    - ppid_8: ppid_8 필터
+    - mes_line_id: mes_line_id 필터
+    - eqp_id: eqp_id 필터
+    - proc_model_name: proc_model_name 필터
+    """
+    try:
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 100))
+
+        queryset = Fab_Info.objects.all()
+
+        # 필터 적용
+        for field in ['ees_line_id', 'ppid_8', 'mes_line_id', 'eqp_id', 'proc_model_name']:
+            value = request.GET.get(field, '').strip()
+            if value:
+                queryset = queryset.filter(**{f'{field}__icontains': value})
+
+        # 페이지네이션
+        total_count = queryset.count()
+        start_index = (page - 1) * page_size
+        end_index = start_index + page_size
+
+        page_data = queryset[start_index:end_index]
+        serializer = Fab_Info_Serializer(page_data, many=True)
+
+        return Response({
+            'results': serializer.data,
+            'total_count': total_count,
+            'page': page,
+            'page_size': page_size,
+            'total_pages': (total_count + page_size - 1) // page_size if total_count > 0 else 0
+        })
+
+    except Exception as e:
+        return _handle_error(e, "fab_info_all_view")
+
+
+@api_view(['GET'])
+@permission_classes([IsManager])
 def fab_info_ees_line_ids_view(request):
     """
     Fab Info 테이블에서 중복 제거된 ees_line_id 목록 조회
