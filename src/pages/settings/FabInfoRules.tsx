@@ -36,8 +36,8 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   useFabInfoRules,
   useFabInfoData,
-  type FabInfoRule,
-  type FabInfoFilters,
+  type Fab_Info_Rule,
+  type Fab_Info_Filters,
 } from "@/hooks/useFabInfoRules";
 
 // ============================================================================
@@ -207,7 +207,7 @@ function RuleForm({ availableEesLineIds, isLoading, onSubmit }: RuleFormProps) {
 // ============================================================================
 
 interface RuleListProps {
-  rules: FabInfoRule[];
+  rules: Fab_Info_Rule[];
   isLoading: boolean;
   onDelete: (ruleId: number) => Promise<void>;
 }
@@ -216,7 +216,7 @@ function RuleList({ rules, isLoading, onDelete }: RuleListProps) {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const handleDelete = async (rule: FabInfoRule) => {
+  const handleDelete = async (rule: Fab_Info_Rule) => {
     setDeletingId(rule.id);
     try {
       await onDelete(rule.id);
@@ -325,7 +325,7 @@ interface CompareTableProps {
 
 function CompareTable({ type, title, description }: CompareTableProps) {
   const [page, setPage] = useState(1);
-  const [filters, setFilters] = useState<FabInfoFilters>({});
+  const [filters, setFilters] = useState<Fab_Info_Filters>({});
   const pageSize = 50;
 
   const { data, totalCount, totalPages, isLoading, refetch } = useFabInfoData(
@@ -335,7 +335,7 @@ function CompareTable({ type, title, description }: CompareTableProps) {
     filters
   );
 
-  const handleFilterChange = (field: keyof FabInfoFilters, value: string) => {
+  const handleFilterChange = (field: keyof Fab_Info_Filters, value: string) => {
     setFilters((prev) => ({ ...prev, [field]: value }));
     setPage(1); // 필터 변경 시 첫 페이지로
   };

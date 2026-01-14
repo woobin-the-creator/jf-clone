@@ -1,5 +1,5 @@
 """
-Fab Info 규칙 적용 유틸리티
+Fab_Info 규칙 적용 유틸리티
 
 bdq_handler.py에서 import하여 사용:
     from .fab_info_utils import apply_rules
@@ -49,11 +49,11 @@ def validate_input(value: str) -> str:
 
 def apply_rules() -> dict:
     """
-    FabInfo 원본 테이블을 복사하고, FabInfoRule에 저장된 모든 규칙을 적용하여
-    FabInfoFiltered 테이블에 저장합니다. (기존 데이터는 덮어쓰기 - B3)
+    Fab_Info 원본 테이블을 복사하고, Fab_Info_Rule에 저장된 모든 규칙을 적용하여
+    Fab_Info_Filtered 테이블에 저장합니다. (기존 데이터는 덮어쓰기 - B3)
 
     이 함수는 다음 상황에서 호출됩니다:
-    1. bdq_handler.py에서 FabInfo 업데이트 후 (C1)
+    1. bdq_handler.py에서 Fab_Info 업데이트 후 (C1)
     2. 규칙 추가/수정/삭제 API 호출 후 (C2)
 
     Returns:
@@ -66,25 +66,25 @@ def apply_rules() -> dict:
             'message': str
         }
     """
-    from .models import FabInfo, FabInfoRule, FabInfoFiltered
+    from .models import Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 
     try:
         with transaction.atomic():
             # 1. 기존 가공 테이블 전체 삭제 (덮어쓰기 - B3)
-            FabInfoFiltered.objects.all().delete()
+            Fab_Info_Filtered.objects.all().delete()
 
             # 2. 모든 규칙 조회
-            rules = FabInfoRule.objects.all()
+            rules = Fab_Info_Rule.objects.all()
             delete_values = set(r.target_value for r in rules if r.action == 'delete')
             replace_rules = {r.target_value: r.new_value for r in rules if r.action == 'replace'}
 
             # 3. 원본 데이터 순회하며 규칙 적용
-            original_count = FabInfo.objects.count()
+            original_count = Fab_Info.objects.count()
             deleted_count = 0
             replaced_count = 0
             filtered_records = []
 
-            for row in FabInfo.objects.all().iterator():
+            for row in Fab_Info.objects.all().iterator():
                 ees_line_id = row.ees_line_id or ''
 
                 # 삭제 규칙: 해당 값이면 skip
@@ -99,7 +99,7 @@ def apply_rules() -> dict:
                     replaced_count += 1
 
                 # 가공 테이블에 삽입할 레코드 추가
-                filtered_records.append(FabInfoFiltered(
+                filtered_records.append(Fab_Info_Filtered(
                     ppid_8=row.ppid_8,
                     ees_line_id=new_ees_line_id,
                     mes_line_id=row.mes_line_id,
@@ -109,7 +109,7 @@ def apply_rules() -> dict:
 
             # 4. 벌크 삽입으로 성능 최적화
             if filtered_records:
-                FabInfoFiltered.objects.bulk_create(filtered_records, batch_size=1000)
+                Fab_Info_Filtered.objects.bulk_create(filtered_records, batch_size=1000)
 
             filtered_count = len(filtered_records)
 
@@ -141,15 +141,15 @@ def apply_rules() -> dict:
 
 def get_unique_ees_line_ids() -> list:
     """
-    FabInfo 테이블에서 중복 제거된 ees_line_id 목록을 반환합니다.
+    Fab_Info 테이블에서 중복 제거된 ees_line_id 목록을 반환합니다.
 
     Returns:
         list: 중복 제거된 ees_line_id 목록
     """
-    from .models import FabInfo
+    from .models import Fab_Info
 
     return list(
-        FabInfo.objects
+        Fab_Info.objects
         .exclude(ees_line_id__isnull=True)
         .exclude(ees_line_id='')
         .values_list('ees_line_id', flat=True)

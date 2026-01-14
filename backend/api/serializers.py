@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Calendar, RequestSubmission, AssigneeMember, FabInfo, FabInfoRule, FabInfoFiltered
+from .models import Calendar, RequestSubmission, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .fab_info_utils import validate_input
 
 
@@ -46,26 +46,26 @@ class AssigneeMemberBulkSerializer(serializers.Serializer):
         return value
 
 
-class FabInfoSerializer(serializers.ModelSerializer):
-    """Fab Info 원본 데이터 Serializer"""
+class Fab_Info_Serializer(serializers.ModelSerializer):
+    """Fab_Info 원본 데이터 Serializer"""
     class Meta:
-        model = FabInfo
+        model = Fab_Info
         fields = ['id', 'ppid_8', 'ees_line_id', 'mes_line_id', 'eqp_id', 'proc_model_name']
 
 
-class FabInfoFilteredSerializer(serializers.ModelSerializer):
-    """Fab Info 가공 데이터 Serializer"""
+class Fab_Info_Filtered_Serializer(serializers.ModelSerializer):
+    """Fab_Info 가공 데이터 Serializer"""
     class Meta:
-        model = FabInfoFiltered
+        model = Fab_Info_Filtered
         fields = ['id', 'ppid_8', 'ees_line_id', 'mes_line_id', 'eqp_id', 'proc_model_name']
 
 
-class FabInfoRuleSerializer(serializers.ModelSerializer):
-    """Fab Info 규칙 Serializer"""
+class Fab_Info_Rule_Serializer(serializers.ModelSerializer):
+    """Fab_Info 규칙 Serializer"""
     action_display = serializers.CharField(source='get_action_display', read_only=True)
 
     class Meta:
-        model = FabInfoRule
+        model = Fab_Info_Rule
         fields = ['id', 'target_value', 'action', 'action_display', 'new_value', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
