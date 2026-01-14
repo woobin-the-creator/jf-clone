@@ -22,15 +22,15 @@ def format_datetime_kst(dt):
     kst_dt = dt + KST_OFFSET
     return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
-from .models import RequestSubmission, Calendar, AssigneeMember, FabInfo, FabInfoRule, FabInfoFiltered
+from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .serializers import (
     RequestSubmissionSerializer,
     CalendarSerializer,
     AssigneeMemberSerializer,
     AssigneeMemberBulkSerializer,
-    FabInfoSerializer,
-    FabInfoFilteredSerializer,
-    FabInfoRuleSerializer
+    Fab_Info_Serializer,
+    Fab_Info_Filtered_Serializer,
+    Fab_Info_Rule_Serializer
 )
 from .fab_info_utils import apply_rules, get_unique_ees_line_ids
 
@@ -302,7 +302,7 @@ def fab_info_view(request):
         page = int(request.GET.get('page', 1))
         page_size = int(request.GET.get('page_size', 100))
 
-        queryset = FabInfo.objects.all()
+        queryset = Fab_Info.objects.all()
 
         # 필터 적용
         for field in ['ees_line_id', 'ppid_8', 'mes_line_id', 'eqp_id', 'proc_model_name']:
@@ -316,7 +316,7 @@ def fab_info_view(request):
         end_index = start_index + page_size
 
         page_data = queryset[start_index:end_index]
-        serializer = FabInfoSerializer(page_data, many=True)
+        serializer = Fab_Info_Serializer(page_data, many=True)
 
         return Response({
             'results': serializer.data,
@@ -368,7 +368,7 @@ def fab_info_filtered_view(request):
         page = int(request.GET.get('page', 1))
         page_size = int(request.GET.get('page_size', 100))
 
-        queryset = FabInfoFiltered.objects.all()
+        queryset = Fab_Info_Filtered.objects.all()
 
         # 필터 적용
         for field in ['ees_line_id', 'ppid_8', 'mes_line_id', 'eqp_id', 'proc_model_name']:
@@ -382,7 +382,7 @@ def fab_info_filtered_view(request):
         end_index = start_index + page_size
 
         page_data = queryset[start_index:end_index]
-        serializer = FabInfoFilteredSerializer(page_data, many=True)
+        serializer = Fab_Info_Filtered_Serializer(page_data, many=True)
 
         return Response({
             'results': serializer.data,
@@ -408,15 +408,15 @@ def fab_info_rules_view(request):
     """
     if request.method == 'GET':
         try:
-            rules = FabInfoRule.objects.all().order_by('-created_at')
-            serializer = FabInfoRuleSerializer(rules, many=True)
+            rules = Fab_Info_Rule.objects.all().order_by('-created_at')
+            serializer = Fab_Info_Rule_Serializer(rules, many=True)
             return Response(serializer.data)
         except Exception as e:
             return _handle_error(e, "fab_info_rules_view:GET")
 
     elif request.method == 'POST':
         try:
-            serializer = FabInfoRuleSerializer(data=request.data)
+            serializer = Fab_Info_Rule_Serializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
 
@@ -447,17 +447,17 @@ def fab_info_rule_detail_view(request, rule_id):
     권한: MANAGER만 접근 가능
     """
     try:
-        rule = FabInfoRule.objects.get(id=rule_id)
-    except FabInfoRule.DoesNotExist:
+        rule = Fab_Info_Rule.objects.get(id=rule_id)
+    except Fab_Info_Rule.DoesNotExist:
         return Response({'error': '규칙을 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = FabInfoRuleSerializer(rule)
+        serializer = Fab_Info_Rule_Serializer(rule)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
         try:
-            serializer = FabInfoRuleSerializer(rule, data=request.data, partial=True)
+            serializer = Fab_Info_Rule_Serializer(rule, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
 

@@ -1,64 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type {
+  Fab_Info_Rule,
+  Fab_Info_Data,
+  Fab_Info_Response,
+  Create_Rule_Payload,
+  Update_Rule_Payload,
+  Fab_Info_Filters,
+} from "@/types/fabInfo.types";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface FabInfoRule {
-  id: number;
-  target_value: string;
-  action: "replace" | "delete";
-  action_display: string;
-  new_value: string | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface FabInfoData {
-  id: number;
-  ppid_8: string | null;
-  ees_line_id: string | null;
-  mes_line_id: string | null;
-  eqp_id: string | null;
-  proc_model_name: string | null;
-}
-
-export interface FabInfoResponse {
-  results: FabInfoData[];
-  total_count: number;
-  page: number;
-  page_size: number;
-  total_pages: number;
-}
-
-export interface ApplyRulesResult {
-  success: boolean;
-  original_count: number;
-  filtered_count: number;
-  deleted_count: number;
-  replaced_count: number;
-  message: string;
-}
-
-export interface CreateRulePayload {
-  target_value: string;
-  action: "replace" | "delete";
-  new_value?: string;
-}
-
-export interface UpdateRulePayload {
-  id: number;
-  action?: "replace" | "delete";
-  new_value?: string;
-}
-
-export interface FabInfoFilters {
-  ees_line_id?: string;
-  ppid_8?: string;
-  mes_line_id?: string;
-  eqp_id?: string;
-  proc_model_name?: string;
-}
+// Re-export types for convenience
+export type {
+  Fab_Info_Rule,
+  Fab_Info_Data,
+  Fab_Info_Response,
+  Create_Rule_Payload,
+  Update_Rule_Payload,
+  Fab_Info_Filters,
+};
 
 // ============================================================================
 // Hook
@@ -72,7 +30,7 @@ export function useFabInfoRules() {
     data: rules = [],
     isLoading: isLoadingRules,
     refetch: refetchRules,
-  } = useQuery<FabInfoRule[]>({
+  } = useQuery<Fab_Info_Rule[]>({
     queryKey: ["/api/fab-info-rules"],
   });
 
@@ -93,7 +51,7 @@ export function useFabInfoRules() {
 
   // 규칙 생성
   const createRuleMutation = useMutation({
-    mutationFn: async (payload: CreateRulePayload) => {
+    mutationFn: async (payload: Create_Rule_Payload) => {
       const response = await fetch("/api/fab-info-rules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,7 +72,7 @@ export function useFabInfoRules() {
 
   // 규칙 수정
   const updateRuleMutation = useMutation({
-    mutationFn: async ({ id, ...payload }: UpdateRulePayload) => {
+    mutationFn: async ({ id, ...payload }: Update_Rule_Payload) => {
       const response = await fetch(`/api/fab-info-rules/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -188,7 +146,7 @@ export function useFabInfoData(
   type: "original" | "filtered",
   page: number = 1,
   pageSize: number = 100,
-  filters: FabInfoFilters = {}
+  filters: Fab_Info_Filters = {}
 ) {
   const endpoint = type === "original" ? "/api/fab-info" : "/api/fab-info-filtered";
 
@@ -205,7 +163,7 @@ export function useFabInfoData(
 
   const queryKey = [endpoint, page, pageSize, filters];
 
-  const { data, isLoading, refetch } = useQuery<FabInfoResponse>({
+  const { data, isLoading, refetch } = useQuery<Fab_Info_Response>({
     queryKey,
     queryFn: async () => {
       const response = await fetch(`${endpoint}?${queryParams.toString()}`, {

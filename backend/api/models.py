@@ -83,9 +83,9 @@ class AssigneeMember(models.Model):
         return f"{self.name} ({self.employee_number})"
 
 
-class FabInfo(models.Model):
+class Fab_Info(models.Model):
     """
-    Fab 정보 원본 테이블
+    Fab_Info 원본 테이블
     bdq_handler.py에서 1시간 단위로 업데이트됩니다.
     """
     ppid_8 = models.CharField(max_length=100, blank=True, null=True, verbose_name='PPID_8')
@@ -96,16 +96,16 @@ class FabInfo(models.Model):
 
     class Meta:
         db_table = 'fab_info'
-        verbose_name = 'Fab 정보'
-        verbose_name_plural = 'Fab 정보 목록'
+        verbose_name = 'Fab_Info'
+        verbose_name_plural = 'Fab_Info 목록'
 
     def __str__(self):
         return f"{self.ees_line_id} - {self.eqp_id}"
 
 
-class FabInfoRule(models.Model):
+class Fab_Info_Rule(models.Model):
     """
-    Fab Info 규칙 테이블
+    Fab_Info 규칙 테이블
     ees_line_id 값을 변경하거나 삭제하는 규칙을 저장합니다.
     """
     ACTION_CHOICES = [
@@ -138,8 +138,8 @@ class FabInfoRule(models.Model):
 
     class Meta:
         db_table = 'fab_info_rule'
-        verbose_name = 'Fab Info 규칙'
-        verbose_name_plural = 'Fab Info 규칙 목록'
+        verbose_name = 'Fab_Info 규칙'
+        verbose_name_plural = 'Fab_Info 규칙 목록'
         ordering = ['-created_at']
         constraints = [
             models.UniqueConstraint(
@@ -154,10 +154,10 @@ class FabInfoRule(models.Model):
         return f"{self.target_value} (삭제)"
 
 
-class FabInfoFiltered(models.Model):
+class Fab_Info_Filtered(models.Model):
     """
-    Fab 정보 가공 테이블
-    FabInfoRule 규칙이 적용된 데이터가 저장됩니다.
+    Fab_Info 가공 테이블
+    Fab_Info_Rule 규칙이 적용된 데이터가 저장됩니다.
     """
     ppid_8 = models.CharField(max_length=100, blank=True, null=True, verbose_name='PPID_8')
     ees_line_id = models.CharField(max_length=100, blank=True, null=True, db_index=True, verbose_name='EES Line ID')
@@ -167,8 +167,8 @@ class FabInfoFiltered(models.Model):
 
     class Meta:
         db_table = 'fab_info_filtered'
-        verbose_name = 'Fab 정보 (가공)'
-        verbose_name_plural = 'Fab 정보 (가공) 목록'
+        verbose_name = 'Fab_Info (가공)'
+        verbose_name_plural = 'Fab_Info (가공) 목록'
 
     def __str__(self):
         return f"{self.ees_line_id} - {self.eqp_id}"
