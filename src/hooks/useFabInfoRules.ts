@@ -148,7 +148,7 @@ export function useFabInfoData(
   pageSize: number = 100,
   filters: Fab_Info_Filters = {}
 ) {
-  const endpoint = type === "original" ? "/api/fab-info" : "/api/fab-info-filtered";
+  const endpoint = type === "original" ? "/api/fab-info-all" : "/api/fab-info-filtered";
 
   // 필터 쿼리 파라미터 구성
   const queryParams = new URLSearchParams();

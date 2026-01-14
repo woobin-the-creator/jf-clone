@@ -17,6 +17,7 @@ urlpatterns = [
 
     # Fab Info 원본 데이터
     path('fab-info', views.fab_info_view, name='fab-info'),
+    path('fab-info-all', views.fab_info_all_view, name='fab-info-all'),
     path('fab-info/ees-line-ids', views.fab_info_ees_line_ids_view, name='fab-info-ees-line-ids'),
 
     # Fab Info 가공 데이터
