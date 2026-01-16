@@ -11,10 +11,17 @@ class CalendarSerializer(serializers.ModelSerializer):
 
 
 class RequestSubmissionSerializer(serializers.ModelSerializer):
-    """의뢰 상신 Serializer"""
+    """의뢰 상신 Serializer (전체 필드 포함)"""
     class Meta:
         model = RequestSubmission
         fields = '__all__'
+
+
+class RequestSubmissionListSerializer(serializers.ModelSerializer):
+    """의뢰 상신 목록 조회용 Serializer (Binary 필드 제외로 성능 최적화)"""
+    class Meta:
+        model = RequestSubmission
+        exclude = ['excel_1', 'excel_2']
 
 
 class AssigneeMemberSerializer(serializers.ModelSerializer):
