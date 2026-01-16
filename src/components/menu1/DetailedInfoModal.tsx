@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import CommentModal from "@/components/menu1/CommentModal";
 import type { RequestSubmission } from "@/types/submission";
 import { useSubmissionActions } from "./DetailedInfoModal/hooks/useSubmissionActions";
@@ -22,9 +23,25 @@ export default function DetailedInfoModal({
   // 리사이즈 훅
   const resize = useModalResize();
 
+  // 상세 데이터 fetch (content, comment 등 전체 필드 포함)
+  const { data: fullSubmission, isLoading: isLoadingDetail } = useQuery<RequestSubmission>({
+    queryKey: [`/api/request-submissions/${submission?.id}`],
+    queryFn: async () => {
+      if (!submission?.id) throw new Error('No submission ID');
+      const response = await fetch(`/api/request-submissions/${submission.id}`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch submission detail');
+      return response.json();
+    },
+    enabled: isOpen && !!submission?.id,
+    staleTime: 0, // 항상 최신 데이터 가져오기
+  });
+
   // 액션 훅 (mutations, 코멘트 모달 등)
+  // fullSubmission이 있으면 사용, 없으면 submission 사용 (로딩 중)
   const actions = useSubmissionActions({
-    submission,
+    submission: fullSubmission || submission,
     onClose,
     onSubmissionUpdate,
   });
@@ -38,6 +55,9 @@ export default function DetailedInfoModal({
   }, [isOpen]);
 
   if (!isOpen || !submission) return null;
+
+  // 로딩 중이거나 데이터가 없으면 submission 사용 (기본 정보 표시)
+  const displaySubmission = fullSubmission || submission;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
@@ -60,7 +80,7 @@ export default function DetailedInfoModal({
       >
         {/* 좌측 사이드바 */}
         <Sidebar
-          submission={submission}
+          submission={displaySubmission}
           user={actions.user}
           isManager={actions.isManager}
           maxTatInput={actions.maxTatInput}
@@ -81,7 +101,7 @@ export default function DetailedInfoModal({
         />
 
         {/* 메인 콘텐츠 영역 */}
-        <MainContent submission={submission} onClose={onClose} />
+        <MainContent submission={displaySubmission} onClose={onClose} isLoadingDetail={isLoadingDetail} />
       </div>
 
       {/* 코멘트 모달 */}
