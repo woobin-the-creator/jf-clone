@@ -18,10 +18,17 @@ class RequestSubmissionSerializer(serializers.ModelSerializer):
 
 
 class RequestSubmissionLightSerializer(serializers.ModelSerializer):
-    """의뢰 상신 경량 Serializer (Binary 필드 제외로 성능 최적화)"""
+    """의뢰 상신 경량 Serializer (Binary 및 큰 TextField 제외로 성능 최적화)"""
     class Meta:
         model = RequestSubmission
-        exclude = ['excel_1', 'excel_2']
+        exclude = [
+            'excel_1', 'excel_2',           # Binary 필드
+            'content',                       # TextField (큰 데이터)
+            'comment_assign',                # TextField
+            'comment_reject',                # TextField
+            'comment_approve',               # TextField
+            'change_request_items',          # TextField
+        ]
 
 
 class AssigneeMemberSerializer(serializers.ModelSerializer):
