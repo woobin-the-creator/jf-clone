@@ -25,6 +25,7 @@ def format_datetime_kst(dt):
 from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .serializers import (
     RequestSubmissionSerializer,
+    RequestSubmissionLightSerializer,
     CalendarSerializer,
     AssigneeMemberSerializer,
     AssigneeMemberBulkSerializer,
@@ -58,7 +59,8 @@ def request_submission_view(request):
 
             page_submissions = submissions[start_index:end_index]
 
-            serializer = RequestSubmissionSerializer(page_submissions, many=True)
+            # Binary 필드(excel_1, excel_2) 제외하여 성능 최적화
+            serializer = RequestSubmissionLightSerializer(page_submissions, many=True)
 
             return Response({
                 'results': serializer.data,
@@ -67,6 +69,135 @@ def request_submission_view(request):
                 'page_size': page_size,
                 'total_pages': (total_count + page_size - 1) // page_size
             })
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET', 'DELETE', 'PUT', 'PATCH'])
+@permission_classes([AllowAny])
+def request_submission_detail_view(request, submission_id):
+    """
+    의뢰 상신 상세 조회 및 업데이트
+    GET: 특정 ID의 의뢰 상세 정보 조회 (전체 필드 포함)
+    PATCH: 담당자 변경, Max_TAT 업데이트
+    DELETE: 의뢰 삭제
+    PUT: 의뢰 상태 업데이트 (결재/반려/취소)
+    """
+    # GET: 상세 조회
+    if request.method == 'GET':
+        try:
+            submission = RequestSubmission.objects.get(id=submission_id)
+            # 상세 조회는 전체 필드 포함 (content, comment 등 포함)
+            serializer = RequestSubmissionSerializer(submission)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except RequestSubmission.DoesNotExist:
+            return Response({'error': '의뢰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # 나머지 메서드들은 인증 필요
+    try:
+        submission = RequestSubmission.objects.get(id=submission_id)
+    except RequestSubmission.DoesNotExist:
+        return Response({'error': '해당 의뢰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 세션 체크 (실제 프로젝트에서는 Employee 모델 사용)
+    # employee_id = request.session.get('employee_id')
+    # if not employee_id:
+    #     return Response({'401_UNAUTHORIZED': '세션이 만료되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+    # current_employee = Employee.objects.get(id=employee_id)
+
+    # PATCH: 담당자/Max_TAT 업데이트
+    if request.method == 'PATCH':
+        try:
+            assignee = request.data.get('assignee')
+            comment = request.data.get('comment')
+            max_tat = request.data.get('Max_TAT')
+
+            # submission.assigned_by = current_employee.username  # 실제 프로젝트에서 활성화
+
+            if assignee is not None:
+                submission.comment_assign = comment
+                assignee_list = [a.strip() for a in assignee.split(',') if a.strip()]
+                if not assignee_list:
+                    raise ValueError("최소 1명의 담당자를 지정해주세요.")
+
+                # alarm_mail(title, comment, submitted_at, assignee_list, "assign")  # 실제 프로젝트에서 활성화
+
+            serializer = RequestSubmissionSerializer(submission, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except ValueError as ve:
+            return Response({'error': 'Invalid assignee', 'detail': str(ve)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # DELETE: 의뢰 삭제
+    elif request.method == 'DELETE':
+        try:
+            # 권한 체크: 본인이 작성한 의뢰만 삭제 가능
+            # if submission.submitted_by != current_employee.username:  # 실제 프로젝트에서 활성화
+            #     return Response({'error': '본인이 작성한 의뢰만 삭제할 수 있습니다.'}, status=status.HTTP_403_FORBIDDEN)
+
+            if submission.status == '내부결재대기중':
+                # appr_id = submission.appr_id
+                # comment = request.data.get('comment')
+                # cancel_approval(appr_id, comment)  # 실제 프로젝트에서 활성화
+                pass
+
+            submission.delete()
+            return Response({'message': '의뢰가 삭제되었습니다.'}, status=status.HTTP_204_NO_CONTENT)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # PUT: 상태 업데이트 (결재/반려/취소)
+    elif request.method == 'PUT':
+        try:
+            action = request.data.get('action', 'approve')
+            comment = request.data.get('comment')
+
+            title = submission.title
+            submitted_at = submission.submitted_at
+            recipient = submission.mail_knox
+
+            if action == 'approve':
+                submission.status = '작성완료'
+                submission.comment_approve = comment
+                # submission.approved_by = current_employee.username  # 실제 프로젝트에서 활성화
+                # alarm_mail(title, comment, submitted_at, recipient, "approve")  # 실제 프로젝트에서 활성화
+
+            elif action == 'reject':
+                submission.status = '반려'
+                submission.comment_reject = comment
+                # submission.rejected_by = current_employee.username  # 실제 프로젝트에서 활성화
+                # alarm_mail(title, comment, submitted_at, recipient, "reject")  # 실제 프로젝트에서 활성화
+
+            elif action == 'cancel':
+                # 권한 체크
+                # if submission.submitted_by != current_employee.username:  # 실제 프로젝트에서 활성화
+                #     return Response({'error': '본인이 작성한 의뢰만 취소할 수 있습니다.'}, status=status.HTTP_403_FORBIDDEN)
+
+                if submission.status != '내부결재대기중':
+                    return Response({'error': '내부결재대기중 상태에서만 취소할 수 있습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # appr_id = submission.appr_id
+                # cancel_approval(appr_id, comment)  # 실제 프로젝트에서 활성화
+
+                submission.status = '상신취소'
+                submission.comment_cancel = comment
+
+            else:
+                return Response({'error': '유효하지 않은 액션입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            submission.save()
+            serializer = RequestSubmissionSerializer(submission)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

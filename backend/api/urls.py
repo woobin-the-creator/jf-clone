@@ -8,6 +8,9 @@ urlpatterns = [
     # 의뢰 상신 CSV 내보내기 (DB 전체)
     path('request-submissions/export-csv', views.export_request_submissions_csv, name='export-request-submissions-csv'),
 
+    # 의뢰 상신 상세 조회 (특정 ID)
+    path('request-submissions/<int:submission_id>', views.request_submission_detail_view, name='request-submission-detail'),
+
     # 임직원 목록 조회 (Calendar 테이블)
     path('calendar', views.calendar_list_view, name='calendar-list'),
 

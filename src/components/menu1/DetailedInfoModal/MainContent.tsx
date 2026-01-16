@@ -12,9 +12,10 @@ const MAX_ZOOM = 2;
 interface MainContentProps {
   submission: RequestSubmission;
   onClose: () => void;
+  isLoadingDetail?: boolean;
 }
 
-export function MainContent({ submission, onClose }: MainContentProps) {
+export function MainContent({ submission, onClose, isLoadingDetail = false }: MainContentProps) {
   // 줌 상태
   const [zoomLevel, setZoomLevel] = useState(1);
 
@@ -149,32 +150,43 @@ export function MainContent({ submission, onClose }: MainContentProps) {
         <div className="relative bg-white rounded-xl shadow-inner border border-gray-200 p-6">
           {/* 실제 가로 스크롤이 걸리는 래퍼 */}
           <div ref={contentScrollRef} className="overflow-x-auto">
-            <div
-              style={{
-                transform: `scale(${zoomLevel})`,
-                transformOrigin: "left top",
-              }}
-              className="inline-block"
-            >
-              {/* 여기 width 고정 */}
+            {isLoadingDetail ? (
+              /* 로딩 중 skeleton */
+              <div className="space-y-3 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+              </div>
+            ) : (
               <div
-                className="prose prose-sm max-w-none w-[1100px]"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    submission.content ||
-                    `
-                    <div class="flex items-center justify-center h-32 text-gray-400">
-                      <div class="text-center">
-                        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p>내용이 없습니다</p>
-                      </div>
-                    </div>
-                  `,
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: "left top",
                 }}
-              />
-            </div>
+                className="inline-block"
+              >
+                {/* 여기 width 고정 */}
+                <div
+                  className="prose prose-sm max-w-none w-[1100px]"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      submission.content ||
+                      `
+                      <div class="flex items-center justify-center h-32 text-gray-400">
+                        <div class="text-center">
+                          <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p>내용이 없습니다</p>
+                        </div>
+                      </div>
+                    `,
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
