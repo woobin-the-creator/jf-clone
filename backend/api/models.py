@@ -28,7 +28,7 @@ class RequestSubmission(models.Model):
     content = models.TextField(blank=True, null=True, verbose_name='내용')
     submitted_by = models.CharField(max_length=100, blank=True, null=True, verbose_name='상신자')
     mail_knox = models.CharField(max_length=200, blank=True, null=True, verbose_name='상신자 메일')
-    submitted_at = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name='상신 시간')
+    submitted_at = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='상신 시간')
     line_id = models.CharField(max_length=100, blank=True, null=True, verbose_name='Line ID')
     ppid = models.CharField(max_length=100, blank=True, null=True, verbose_name='PPID')
     eqpid = models.CharField(max_length=100, blank=True, null=True, verbose_name='EQPID')
