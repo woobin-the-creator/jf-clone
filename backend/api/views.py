@@ -76,6 +76,24 @@ def request_submission_view(request):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def request_submission_detail_view(request, submission_id):
+    """
+    의뢰 상신 상세 조회
+    GET: 특정 ID의 의뢰 상세 정보 조회 (전체 필드 포함)
+    """
+    try:
+        submission = RequestSubmission.objects.get(id=submission_id)
+        # 상세 조회는 전체 필드 포함 (content, comment 등 포함)
+        serializer = RequestSubmissionSerializer(submission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except RequestSubmission.DoesNotExist:
+        return Response({'error': '의뢰를 찾을 수 없습니다.'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def export_request_submissions_csv(request):
     """
     RequestSubmission 전체 데이터를 CSV로 내보내기
