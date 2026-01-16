@@ -25,7 +25,7 @@ def format_datetime_kst(dt):
 from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .serializers import (
     RequestSubmissionSerializer,
-    RequestSubmissionListSerializer,
+    RequestSubmissionLightSerializer,
     CalendarSerializer,
     AssigneeMemberSerializer,
     AssigneeMemberBulkSerializer,
@@ -60,7 +60,7 @@ def request_submission_view(request):
             page_submissions = submissions[start_index:end_index]
 
             # Binary 필드(excel_1, excel_2) 제외하여 성능 최적화
-            serializer = RequestSubmissionListSerializer(page_submissions, many=True)
+            serializer = RequestSubmissionLightSerializer(page_submissions, many=True)
 
             return Response({
                 'results': serializer.data,

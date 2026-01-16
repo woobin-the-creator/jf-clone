@@ -17,8 +17,8 @@ class RequestSubmissionSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class RequestSubmissionListSerializer(serializers.ModelSerializer):
-    """의뢰 상신 목록 조회용 Serializer (Binary 필드 제외로 성능 최적화)"""
+class RequestSubmissionLightSerializer(serializers.ModelSerializer):
+    """의뢰 상신 경량 Serializer (Binary 필드 제외로 성능 최적화)"""
     class Meta:
         model = RequestSubmission
         exclude = ['excel_1', 'excel_2']
