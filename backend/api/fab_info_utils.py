@@ -156,3 +156,33 @@ def get_unique_ees_line_ids() -> list:
         .distinct()
         .order_by('ees_line_id')
     )
+
+
+if __name__ == "__main__":
+    """
+    fab_info_utils.py를 직접 실행하여 규칙을 적용합니다.
+
+    사용법:
+        python backend/api/fab_info_utils.py
+    """
+    import os
+    import django
+
+    # Django 설정 초기화
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'business_system.settings')
+    django.setup()
+
+    # 규칙 적용 실행
+    print("Fab_Info 규칙 적용을 시작합니다...")
+    result = apply_rules()
+
+    # 결과 출력
+    if result['success']:
+        print(f"✓ {result['message']}")
+        print(f"  - 원본 데이터: {result['original_count']}건")
+        print(f"  - 가공 데이터: {result['filtered_count']}건")
+        print(f"  - 삭제된 행: {result['deleted_count']}건")
+        print(f"  - 변경된 값: {result['replaced_count']}건")
+    else:
+        print(f"✗ {result['message']}")
+        exit(1)
