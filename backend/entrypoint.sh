@@ -1,1 +1,19 @@
-# 해당 파일은 원본 프로젝트 폴더 트리 구조를 모방하기 위해 예시로 생성된 목업파일입니다. 사용자에게 실제 원본 파일 내용물을 요구하고, 그 내용을 참고하여 작업하세요.
+#!/bin/bash
+set -e
+
+echo "==================== Django Startup ===================="
+
+# Migration 실행
+echo "Running database migrations..."
+python /app/backend/manage.py migrate --noinput
+echo "✅ Migrations completed!"
+
+# Static 파일 수집
+echo "Collecting static files..."
+python /app/backend/manage.py collectstatic --noinput --clear || true
+echo "✅ Static files collected!"
+
+echo "Starting Django server..."
+echo "========================================================"
+
+exec "$@"
