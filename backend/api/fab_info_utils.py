@@ -163,21 +163,40 @@ if __name__ == "__main__":
     fab_info_utils.py를 직접 실행하여 규칙을 적용합니다.
 
     사용법:
-        python backend/api/fab_info_utils.py
-        또는 backend 디렉토리에서: python api/fab_info_utils.py
+        # 컨테이너 내부에서
+        cd /app/backend
+        python -m api.fab_info_utils
+
+        # 또는
+        cd /app
+        python -m backend.api.fab_info_utils
     """
     import os
     import sys
     import django
 
-    # backend 디렉토리를 Python 경로에 추가
-    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # 현재 파일의 위치를 기준으로 backend 디렉토리 찾기
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    backend_dir = os.path.dirname(current_dir)
+
+    # backend 디렉토리를 sys.path에 추가
     if backend_dir not in sys.path:
         sys.path.insert(0, backend_dir)
 
+    print(f"DEBUG: backend_dir = {backend_dir}")
+    print(f"DEBUG: sys.path = {sys.path[:3]}")
+
     # Django 설정 초기화
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'business_system.settings')
-    django.setup()
+
+    try:
+        django.setup()
+    except Exception as e:
+        print(f"✗ Django 설정 초기화 실패: {e}")
+        print(f"  현재 디렉토리: {os.getcwd()}")
+        print(f"  파일 위치: {__file__}")
+        print(f"  backend_dir: {backend_dir}")
+        exit(1)
 
     # 규칙 적용 실행
     print("Fab_Info 규칙 적용을 시작합니다...")
