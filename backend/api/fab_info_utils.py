@@ -164,9 +164,16 @@ if __name__ == "__main__":
 
     사용법:
         python backend/api/fab_info_utils.py
+        또는 backend 디렉토리에서: python api/fab_info_utils.py
     """
     import os
+    import sys
     import django
+
+    # backend 디렉토리를 Python 경로에 추가
+    backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
 
     # Django 설정 초기화
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'business_system.settings')
