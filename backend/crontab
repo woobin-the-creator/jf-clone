@@ -1,0 +1,5 @@
+# Fab_Info 규칙 적용 - 매일 새벽 2시
+0 2 * * * cd /app/backend && python manage.py apply_fab_rules >> /var/log/cron.log 2>&1
+
+# 또는 6시간마다 실행하려면:
+# 0 */6 * * * cd /app/backend && python manage.py apply_fab_rules >> /var/log/cron.log 2>&1

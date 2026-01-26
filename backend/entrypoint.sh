@@ -13,15 +13,12 @@ echo "Collecting static files..."
 python /app/backend/manage.py collectstatic --noinput --clear || true
 echo "✅ Static files collected!"
 
-# Cron 작업 등록
-echo "Registering cron jobs..."
-python /app/backend/manage.py crontab add
-echo "✅ Cron jobs registered!"
-
-# Cron 데몬 시작
-echo "Starting cron daemon..."
-service cron start
-echo "✅ Cron daemon started!"
+# Supercronic으로 cron 시작 (백그라운드)
+if [ -f /app/backend/crontab ]; then
+    echo "Starting cron jobs with supercronic..."
+    supercronic /app/backend/crontab &
+    echo "✅ Cron jobs started!"
+fi
 
 echo "Starting Django server..."
 echo "========================================================"
