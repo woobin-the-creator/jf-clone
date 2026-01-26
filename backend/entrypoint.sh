@@ -18,6 +18,11 @@ echo "Registering cron jobs..."
 python /app/backend/manage.py crontab add
 echo "✅ Cron jobs registered!"
 
+# Cron 데몬 시작
+echo "Starting cron daemon..."
+service cron start
+echo "✅ Cron daemon started!"
+
 echo "Starting Django server..."
 echo "========================================================"
 
