@@ -29,4 +29,8 @@ urlpatterns = [
     # Fab Info 규칙 관리
     path('fab-info-rules', views.fab_info_rules_view, name='fab-info-rules'),
     path('fab-info-rules/<int:rule_id>', views.fab_info_rule_detail_view, name='fab-info-rule-detail'),
+
+    # 동시 접속자 (Active Users)
+    path('heartbeat', views.heartbeat_view, name='heartbeat'),
+    path('active-users', views.active_users_view, name='active-users'),
 ]

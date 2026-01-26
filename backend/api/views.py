@@ -22,7 +22,8 @@ def format_datetime_kst(dt):
     kst_dt = dt + KST_OFFSET
     return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
-from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
+from django.utils import timezone
+from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered, ActiveUser
 from .serializers import (
     RequestSubmissionSerializer,
     RequestSubmissionLightSerializer,
@@ -672,3 +673,86 @@ def fab_info_rule_detail_view(request, rule_id):
             })
         except Exception as e:
             return _handle_error(e, "fab_info_rule_detail_view:DELETE")
+
+
+# ============================================================================
+# 동시 접속자 (Active Users) 관련 Views
+# ============================================================================
+
+ACTIVE_TIMEOUT_MINUTES = 5  # 5분 동안 활동이 없으면 비활성으로 간주
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def heartbeat_view(request):
+    """
+    사용자 활동 상태 업데이트 (Heartbeat)
+    POST /api/heartbeat
+
+    클라이언트에서 주기적으로 호출하여 사용자 활동 상태를 기록합니다.
+
+    Request Body:
+    - user_id: 사용자 ID (필수)
+    - username: 사용자명 (선택)
+
+    Response:
+    - active_users: 현재 활성 사용자 수
+    - timestamp: 서버 시간
+    """
+    try:
+        user_id = request.data.get('user_id')
+        username = request.data.get('username', 'Unknown')
+
+        if not user_id:
+            return Response(
+                {'error': 'user_id는 필수입니다.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 사용자 활동 기록 upsert (update or create)
+        ActiveUser.objects.update_or_create(
+            user_id=user_id,
+            defaults={'username': username}
+        )
+
+        # 오래된 비활성 사용자 정리
+        cutoff_time = timezone.now() - timedelta(minutes=ACTIVE_TIMEOUT_MINUTES)
+        ActiveUser.objects.filter(last_activity__lt=cutoff_time).delete()
+
+        # 현재 활성 사용자 수 반환
+        active_count = ActiveUser.objects.count()
+
+        return Response({
+            'active_users': active_count,
+            'timestamp': timezone.now().isoformat()
+        })
+
+    except Exception as e:
+        return _handle_error(e, "heartbeat_view")
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def active_users_view(request):
+    """
+    현재 동시 접속자 수 조회
+    GET /api/active-users
+
+    Response:
+    - active_users: 현재 활성 사용자 수
+    - timestamp: 서버 시간
+    """
+    try:
+        # 오래된 비활성 사용자 정리 후 카운트
+        cutoff_time = timezone.now() - timedelta(minutes=ACTIVE_TIMEOUT_MINUTES)
+        ActiveUser.objects.filter(last_activity__lt=cutoff_time).delete()
+
+        active_count = ActiveUser.objects.count()
+
+        return Response({
+            'active_users': active_count,
+            'timestamp': timezone.now().isoformat()
+        })
+
+    except Exception as e:
+        return _handle_error(e, "active_users_view")
