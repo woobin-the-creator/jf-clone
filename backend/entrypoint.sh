@@ -13,6 +13,11 @@ echo "Collecting static files..."
 python /app/backend/manage.py collectstatic --noinput --clear || true
 echo "✅ Static files collected!"
 
+# Cron 작업 등록
+echo "Registering cron jobs..."
+python /app/backend/manage.py crontab add
+echo "✅ Cron jobs registered!"
+
 echo "Starting Django server..."
 echo "========================================================"
 
