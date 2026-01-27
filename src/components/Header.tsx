@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, Lock, UserRoundCheck, Settings, ChevronDown, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
+import { ConcurrentUsersIndicator } from "./ConcurrentUsersIndicator";
 
 interface MenuItem {
   name: string;
@@ -134,6 +135,9 @@ export function Header() {
 
           {/* User Info and Actions */}
           <div className="flex items-center space-x-4">
+            {/* Concurrent Users Indicator */}
+            <ConcurrentUsersIndicator />
+
             {/* User Role Badge */}
             <div className="flex items-center">
               <Badge variant="secondary" className="flex items-center">

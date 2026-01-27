@@ -172,3 +172,21 @@ class Fab_Info_Filtered(models.Model):
 
     def __str__(self):
         return f"{self.ees_line_id} - {self.eqp_id}"
+
+
+class ActiveUser(models.Model):
+    """
+    동시 접속자 추적 테이블
+    사용자의 활동 상태를 기록하여 동시 접속자 수를 파악합니다.
+    """
+    user_id = models.CharField(max_length=200, unique=True, db_index=True, verbose_name='사용자 ID')
+    username = models.CharField(max_length=100, verbose_name='사용자명')
+    last_activity = models.DateTimeField(auto_now=True, db_index=True, verbose_name='마지막 활동 시간')
+
+    class Meta:
+        db_table = 'active_user'
+        verbose_name = '활성 사용자'
+        verbose_name_plural = '활성 사용자 목록'
+
+    def __str__(self):
+        return f"{self.username} ({self.user_id})"
