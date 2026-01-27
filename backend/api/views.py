@@ -728,7 +728,11 @@ def heartbeat_view(request):
         })
 
     except Exception as e:
-        return _handle_error(e, "heartbeat_view")
+        logger.error(f"heartbeat_view error: {str(e)}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['GET'])
@@ -755,4 +759,8 @@ def active_users_view(request):
         })
 
     except Exception as e:
-        return _handle_error(e, "active_users_view")
+        logger.error(f"active_users_view error: {str(e)}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
