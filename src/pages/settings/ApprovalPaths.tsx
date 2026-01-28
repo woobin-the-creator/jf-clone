@@ -85,9 +85,9 @@ export default function ApprovalPaths() {
     return employees
       .filter(
         (emp) =>
-          emp.username.toLowerCase().includes(term) ||
-          emp.employee_number.includes(term) ||
-          emp.deptname_knox.toLowerCase().includes(term)
+          emp.username?.toLowerCase().includes(term) ||
+          emp.employee_number?.includes(term) ||
+          emp.deptname_knox?.toLowerCase().includes(term)
       )
       .slice(0, 50); // 최대 50개까지만 표시
   }, [employees, searchTerm]);
@@ -100,6 +100,7 @@ export default function ApprovalPaths() {
   // 멤버 추가
   const handleAddMember = (employee: Employee) => {
     if (isAlreadyAdded(employee.knox_id)) return;
+    if (!employee.username) return; // username이 없으면 추가하지 않음
 
     setSelectedMembers((prev) => [
       ...prev,
@@ -201,9 +202,9 @@ export default function ApprovalPaths() {
                         onClick={() => !added && handleAddMember(emp)}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{emp.username}</div>
+                          <div className="font-medium truncate">{emp.username || '-'}</div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {emp.employee_number} | {emp.deptname_knox}
+                            {emp.employee_number || '-'} | {emp.deptname_knox || '-'}
                           </div>
                         </div>
                         {added ? (
