@@ -8,9 +8,9 @@ import { Search, Plus, X, Users, UserPlus, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Calendar {
-  username: string;
+  name: string;
   employee_number: string;
-  deptname_knox: string;
+  part: string;
   knox_id: string;
 }
 
@@ -91,9 +91,9 @@ export default function ApprovalPaths() {
     return employees
       .filter(
         (emp) =>
-          emp.username.toLowerCase().includes(term) ||
+          emp.name.toLowerCase().includes(term) ||
           emp.employee_number.includes(term) ||
-          emp.deptname_knox.toLowerCase().includes(term)
+          emp.part.toLowerCase().includes(term)
       )
       .slice(0, 50); // 최대 50개까지만 표시
   }, [employees, searchTerm]);
@@ -111,7 +111,7 @@ export default function ApprovalPaths() {
       ...prev,
       {
         knox_id: employee.knox_id,
-        name: employee.username,
+        name: employee.name,
         employee_number: employee.employee_number,
       },
     ]);
@@ -207,9 +207,9 @@ export default function ApprovalPaths() {
                         onClick={() => !added && handleAddMember(emp)}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{emp.username}</div>
+                          <div className="font-medium truncate">{emp.name}</div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {emp.employee_number} | {emp.deptname_knox}
+                            {emp.employee_number} | {emp.part}
                           </div>
                         </div>
                         {added ? (
