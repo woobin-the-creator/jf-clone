@@ -6,13 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, X, Users, UserPlus, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Calendar {
-  name: string;
-  employee_number: string;
-  part: string;
-  knox_id: string;
-}
+import type { Employee } from "@/types/menu1.types";
 
 interface AssigneeMember {
   id?: number;
@@ -32,7 +26,7 @@ export default function ApprovalPaths() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   // 전체 임직원 목록 조회
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Calendar[]>({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
     queryKey: ["/api/employees"],
   });
 
@@ -91,9 +85,9 @@ export default function ApprovalPaths() {
     return employees
       .filter(
         (emp) =>
-          emp.name.toLowerCase().includes(term) ||
+          emp.username.toLowerCase().includes(term) ||
           emp.employee_number.includes(term) ||
-          emp.part.toLowerCase().includes(term)
+          emp.deptname_knox.toLowerCase().includes(term)
       )
       .slice(0, 50); // 최대 50개까지만 표시
   }, [employees, searchTerm]);
@@ -104,14 +98,14 @@ export default function ApprovalPaths() {
   };
 
   // 멤버 추가
-  const handleAddMember = (employee: Calendar) => {
+  const handleAddMember = (employee: Employee) => {
     if (isAlreadyAdded(employee.knox_id)) return;
 
     setSelectedMembers((prev) => [
       ...prev,
       {
         knox_id: employee.knox_id,
-        name: employee.name,
+        name: employee.username,
         employee_number: employee.employee_number,
       },
     ]);
@@ -207,9 +201,9 @@ export default function ApprovalPaths() {
                         onClick={() => !added && handleAddMember(emp)}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{emp.name}</div>
+                          <div className="font-medium truncate">{emp.username}</div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {emp.employee_number} | {emp.part}
+                            {emp.employee_number} | {emp.deptname_knox}
                           </div>
                         </div>
                         {added ? (

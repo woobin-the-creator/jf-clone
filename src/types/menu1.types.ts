@@ -58,6 +58,13 @@ export interface Calendar {
   knox_id: string;
 }
 
+export interface Employee {
+  username: string;
+  employee_number: string;
+  deptname_knox: string;
+  knox_id: string;
+}
+
 export interface FilterState {
   searchTerm: string;
   dateFilter: {

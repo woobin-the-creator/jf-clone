@@ -11,14 +11,12 @@ class CalendarSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    """임직원 정보 Serializer (Employee 테이블 → Calendar 형식으로 변환)"""
-    name = serializers.CharField(source='username')
-    part = serializers.CharField(source='deptname_knox')
+    """임직원 정보 Serializer (Employee 테이블)"""
     knox_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Employee
-        fields = ['name', 'employee_number', 'part', 'knox_id']
+        fields = ['username', 'employee_number', 'deptname_knox', 'knox_id']
 
     def get_knox_id(self, obj):
         """mail_knox에서 @ 이후 도메인을 제거하고 ID만 반환"""
