@@ -94,7 +94,7 @@ export const getUniqueAssigneeNames = (
   });
 
   return knoxIds
-    .map(id => employeeMap.get(id)?.name || id)
+    .map(id => employeeMap.get(id)?.username || id)
     .filter(Boolean)
     .sort();
 };
@@ -113,7 +113,7 @@ export const convertKnoxIdToName = (
     .split(",")
     .map((id) => id.trim())
     .filter(Boolean)
-    .map((id) => employeeMap.get(id)?.name || id);
+    .map((id) => employeeMap.get(id)?.username || id);
 
   return names.length > 0 ? names.join(", ") : "-";
 };
@@ -149,7 +149,7 @@ export const filterData = (
       // 담당자 이름 검색 (knox_id → 이름 변환)
       const assigneeMatch = item.assignee && empInfoData
         ? item.assignee.split(',')
-            .map(id => employeeMap.get(id.trim())?.name || '')
+            .map(id => employeeMap.get(id.trim())?.username || '')
             .some(name => name.toLowerCase().includes(searchLower))
         : false;
 

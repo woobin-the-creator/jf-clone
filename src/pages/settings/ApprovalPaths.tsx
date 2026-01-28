@@ -8,9 +8,9 @@ import { Search, Plus, X, Users, UserPlus, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Calendar {
-  name: string;
+  username: string;
   employee_number: string;
-  part: string;
+  deptname_knox: string;
   knox_id: string;
 }
 
@@ -33,7 +33,7 @@ export default function ApprovalPaths() {
 
   // 전체 임직원 목록 조회
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Calendar[]>({
-    queryKey: ["/api/calendar"],
+    queryKey: ["/api/employees"],
   });
 
   // 저장된 담당자 멤버 목록 조회
@@ -91,9 +91,9 @@ export default function ApprovalPaths() {
     return employees
       .filter(
         (emp) =>
-          emp.name.toLowerCase().includes(term) ||
+          emp.username.toLowerCase().includes(term) ||
           emp.employee_number.includes(term) ||
-          emp.part.toLowerCase().includes(term)
+          emp.deptname_knox.toLowerCase().includes(term)
       )
       .slice(0, 50); // 최대 50개까지만 표시
   }, [employees, searchTerm]);
@@ -111,7 +111,7 @@ export default function ApprovalPaths() {
       ...prev,
       {
         knox_id: employee.knox_id,
-        name: employee.name,
+        name: employee.username,
         employee_number: employee.employee_number,
       },
     ]);
@@ -207,9 +207,9 @@ export default function ApprovalPaths() {
                         onClick={() => !added && handleAddMember(emp)}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{emp.name}</div>
+                          <div className="font-medium truncate">{emp.username}</div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {emp.employee_number} | {emp.part}
+                            {emp.employee_number} | {emp.deptname_knox}
                           </div>
                         </div>
                         {added ? (

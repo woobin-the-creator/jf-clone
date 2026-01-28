@@ -52,9 +52,9 @@ export interface RequestSubmissionResponse {
 }
 
 export interface Calendar {
-  name: string;
+  username: string;
   employee_number: string;
-  part: string;
+  deptname_knox: string;
   knox_id: string;
 }
 

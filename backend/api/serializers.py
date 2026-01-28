@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Calendar, RequestSubmission, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
+from .models import Calendar, RequestSubmission, AssigneeMember, Employee, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .fab_info_utils import validate_input
 
 
@@ -8,6 +8,21 @@ class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
         fields = ['name', 'employee_number', 'part', 'knox_id']
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    """임직원 정보 Serializer (Employee 테이블)"""
+    knox_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Employee
+        fields = ['username', 'employee_number', 'deptname_knox', 'mail_knox', 'knox_id']
+
+    def get_knox_id(self, obj):
+        """mail_knox에서 @ 이후 도메인을 제거하고 ID만 반환"""
+        if obj.mail_knox:
+            return obj.mail_knox.split('@')[0]
+        return ''
 
 
 class RequestSubmissionSerializer(serializers.ModelSerializer):
