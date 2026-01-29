@@ -29,6 +29,7 @@ from .serializers import (
     RequestSubmissionLightSerializer,
     CalendarSerializer,
     EmployeeSerializer,
+    EmployeeWithKnoxIdSerializer,
     AssigneeMemberSerializer,
     AssigneeMemberBulkSerializer,
     Fab_Info_Serializer,
@@ -330,12 +331,12 @@ def calendar_list_view(request):
 @permission_classes([AllowAny])
 def employee_list_view(request):
     """
-    employee 테이블의 모든 직원 정보를 반환합니다.
+    employee 테이블의 모든 직원 정보를 반환합니다 (ApprovalPaths용 - knox_id 추출).
     GET /api/employees
     """
     try:
         employees = Employee.objects.all()
-        serializer = EmployeeSerializer(employees, many=True)
+        serializer = EmployeeWithKnoxIdSerializer(employees, many=True)
         return Response(serializer.data)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

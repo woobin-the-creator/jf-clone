@@ -11,7 +11,15 @@ class CalendarSerializer(serializers.ModelSerializer):
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
-    """임직원 정보 Serializer (Employee 테이블)"""
+    """임직원 정보 Serializer (원본 프로젝트)"""
+    class Meta:
+        model = Employee
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class EmployeeWithKnoxIdSerializer(serializers.ModelSerializer):
+    """임직원 정보 Serializer (ApprovalPaths용 - mail_knox에서 knox_id 추출)"""
     knox_id = serializers.SerializerMethodField()
 
     class Meta:
