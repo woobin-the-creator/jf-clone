@@ -18,21 +18,6 @@ class EmployeeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class EmployeeWithKnoxIdSerializer(serializers.ModelSerializer):
-    """임직원 정보 Serializer (ApprovalPaths용 - mail_knox에서 knox_id 추출)"""
-    knox_id = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Employee
-        fields = ['username', 'employee_number', 'deptname_knox', 'knox_id']
-
-    def get_knox_id(self, obj):
-        """mail_knox에서 @ 이후 도메인을 제거하고 ID만 반환"""
-        if obj.mail_knox:
-            return obj.mail_knox.split('@')[0]
-        return ''
-
-
 class RequestSubmissionSerializer(serializers.ModelSerializer):
     """의뢰 상신 Serializer (전체 필드 포함)"""
     class Meta:

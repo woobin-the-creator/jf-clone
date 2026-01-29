@@ -16,6 +16,12 @@ interface AssigneeMember {
   created_at?: string;
 }
 
+// mail_knox에서 @ 이전 부분만 추출하는 유틸 함수
+const extractKnoxId = (mail_knox: string | undefined): string => {
+  if (!mail_knox) return '';
+  return mail_knox.split('@')[0];
+};
+
 export default function ApprovalPaths() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -93,19 +99,21 @@ export default function ApprovalPaths() {
   }, [employees, searchTerm]);
 
   // 이미 추가된 멤버인지 확인
-  const isAlreadyAdded = (knoxId: string) => {
-    return selectedMembers.some((m) => m.knox_id === knoxId);
+  const isAlreadyAdded = (mail_knox: string) => {
+    const knox_id = extractKnoxId(mail_knox);
+    return selectedMembers.some((m) => m.knox_id === knox_id);
   };
 
   // 멤버 추가
   const handleAddMember = (employee: Employee) => {
-    if (isAlreadyAdded(employee.knox_id)) return;
+    const knox_id = extractKnoxId(employee.mail_knox);
+    if (isAlreadyAdded(employee.mail_knox)) return;
     if (!employee.username) return; // username이 없으면 추가하지 않음
 
     setSelectedMembers((prev) => [
       ...prev,
       {
-        knox_id: employee.knox_id,
+        knox_id: knox_id,
         name: employee.username,
         employee_number: employee.employee_number,
       },
@@ -190,10 +198,11 @@ export default function ApprovalPaths() {
               ) : (
                 <div className="p-2 space-y-1">
                   {filteredEmployees.map((emp) => {
-                    const added = isAlreadyAdded(emp.knox_id);
+                    const knox_id = extractKnoxId(emp.mail_knox);
+                    const added = isAlreadyAdded(emp.mail_knox);
                     return (
                       <div
-                        key={emp.knox_id}
+                        key={knox_id}
                         className={`flex items-center justify-between p-3 rounded-lg border ${
                           added
                             ? "bg-muted/50 border-muted"

@@ -62,7 +62,7 @@ export interface Employee {
   username: string;
   employee_number: string;
   deptname_knox: string;
-  knox_id: string;
+  mail_knox: string;
 }
 
 export interface FilterState {
