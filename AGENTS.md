@@ -21,3 +21,11 @@ There is no committed automated frontend test suite yet and no coverage gate in 
 
 ## Commit & Pull Request Guidelines
 Recent history follows conventional prefixes such as `feat:`, `fix:`, and `debug:`. Keep subjects short, imperative, and scoped to one change. PRs should include: a brief problem/solution summary, affected paths, verification steps actually run, linked issues, and screenshots or GIFs for UI updates. If you touch mock placeholder files, call that out explicitly so reviewers know what still needs source-of-truth confirmation.
+## Context Isolation (Subagent Rule)
+
+Keep the main context window lean. When this environment provides subagent tooling (Claude Code `Task`, OpenCode `task`/`agent`, Hermes `delegate_task`, Codex collab, or equivalent), use it to isolate context-heavy work. If no subagent tooling exists, ignore this section.
+
+1. **Delegate large read-only output.** Route codebase/document exploration whose raw output is expected to exceed a few thousand tokens (multi-file reads, broad searches, document/log dumps) and browser screenshot loops (Playwright etc.) to a subagent. Quick lookups of one or two files stay in the main context.
+2. **Dispatch self-contained prompts.** Subagents have no access to this conversation. Every dispatch must carry the goal, exact paths or search terms, constraints, and the expected return format.
+3. **Return summaries with references.** Subagents report a concise summary with `path:line` references (plus one final screenshot for visual checks) so specifics can be re-read on demand without re-exploration.
+4. **Verify in the main context.** Final user-facing verification — last diff review and final screenshot — is performed directly by the main agent. Subagent reports are input, not proof.
