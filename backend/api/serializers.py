@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Calendar, RequestSubmission, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
+from .models import Calendar, RequestSubmission, AssigneeMember, Employee, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered
 from .fab_info_utils import validate_input
 
 
@@ -8,6 +8,14 @@ class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
         fields = ['name', 'employee_number', 'part', 'knox_id']
+
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    """임직원 정보 Serializer (원본 프로젝트)"""
+    class Meta:
+        model = Employee
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class RequestSubmissionSerializer(serializers.ModelSerializer):

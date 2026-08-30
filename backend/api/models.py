@@ -174,6 +174,25 @@ class Fab_Info_Filtered(models.Model):
         return f"{self.ees_line_id} - {self.eqp_id}"
 
 
+class Employee(models.Model):
+    """
+    임직원 정보 테이블 (원본 프로젝트 기존 테이블)
+    """
+    username = models.CharField(max_length=100, verbose_name='이름')
+    employee_number = models.CharField(max_length=50, verbose_name='사번')
+    deptname_knox = models.CharField(max_length=100, verbose_name='부서')
+    mail_knox = models.CharField(max_length=200, verbose_name='Knox 메일')
+
+    class Meta:
+        db_table = 'employee'
+        managed = False  # 기존 테이블 참조
+        verbose_name = '임직원'
+        verbose_name_plural = '임직원 목록'
+
+    def __str__(self):
+        return f"{self.username} ({self.employee_number})"
+
+
 class ActiveUser(models.Model):
     """
     동시 접속자 추적 테이블

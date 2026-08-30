@@ -23,11 +23,12 @@ def format_datetime_kst(dt):
     return kst_dt.strftime('%Y-%m-%d %H:%M:%S')
 
 from django.utils import timezone
-from .models import RequestSubmission, Calendar, AssigneeMember, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered, ActiveUser
+from .models import RequestSubmission, Calendar, AssigneeMember, Employee, Fab_Info, Fab_Info_Rule, Fab_Info_Filtered, ActiveUser
 from .serializers import (
     RequestSubmissionSerializer,
     RequestSubmissionLightSerializer,
     CalendarSerializer,
+    EmployeeSerializer,
     AssigneeMemberSerializer,
     AssigneeMemberBulkSerializer,
     Fab_Info_Serializer,
@@ -323,6 +324,21 @@ def calendar_list_view(request):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def employee_list_view(request):
+    """
+    employee 테이블의 모든 직원 정보를 반환합니다.
+    GET /api/employees
+    """
+    try:
+        employees = Employee.objects.all()
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET', 'POST', 'PUT'])

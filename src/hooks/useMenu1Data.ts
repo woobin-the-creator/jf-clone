@@ -65,7 +65,7 @@ export const useMenu1Data = () => {
   });
 
   const { data: empInfoData = [] } = useQuery<Calendar[]>({
-    queryKey: ["/api/calendar"],
+    queryKey: ["/api/employees"],
   });
 
   // ==================== MUTATIONS ====================

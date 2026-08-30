@@ -6,13 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Plus, X, Users, UserPlus, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Calendar {
-  name: string;
-  employee_number: string;
-  part: string;
-  knox_id: string;
-}
+import type { Employee } from "@/types/menu1.types";
 
 interface AssigneeMember {
   id?: number;
@@ -21,6 +15,12 @@ interface AssigneeMember {
   employee_number: string;
   created_at?: string;
 }
+
+// mail_knox에서 @ 이전 부분만 추출하는 유틸 함수
+const extractKnoxId = (mail_knox: string | undefined): string => {
+  if (!mail_knox) return '';
+  return mail_knox.split('@')[0];
+};
 
 export default function ApprovalPaths() {
   const { toast } = useToast();
@@ -32,8 +32,8 @@ export default function ApprovalPaths() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   // 전체 임직원 목록 조회
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Calendar[]>({
-    queryKey: ["/api/calendar"],
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery<Employee[]>({
+    queryKey: ["/api/employees"],
   });
 
   // 저장된 담당자 멤버 목록 조회
@@ -91,27 +91,30 @@ export default function ApprovalPaths() {
     return employees
       .filter(
         (emp) =>
-          emp.name.toLowerCase().includes(term) ||
-          emp.employee_number.includes(term) ||
-          emp.part.toLowerCase().includes(term)
+          emp.username?.toLowerCase().includes(term) ||
+          emp.employee_number?.includes(term) ||
+          emp.deptname_knox?.toLowerCase().includes(term)
       )
       .slice(0, 50); // 최대 50개까지만 표시
   }, [employees, searchTerm]);
 
   // 이미 추가된 멤버인지 확인
-  const isAlreadyAdded = (knoxId: string) => {
-    return selectedMembers.some((m) => m.knox_id === knoxId);
+  const isAlreadyAdded = (mail_knox: string) => {
+    const knox_id = extractKnoxId(mail_knox);
+    return selectedMembers.some((m) => m.knox_id === knox_id);
   };
 
   // 멤버 추가
-  const handleAddMember = (employee: Calendar) => {
-    if (isAlreadyAdded(employee.knox_id)) return;
+  const handleAddMember = (employee: Employee) => {
+    const knox_id = extractKnoxId(employee.mail_knox);
+    if (isAlreadyAdded(employee.mail_knox)) return;
+    if (!employee.username) return; // username이 없으면 추가하지 않음
 
     setSelectedMembers((prev) => [
       ...prev,
       {
-        knox_id: employee.knox_id,
-        name: employee.name,
+        knox_id: knox_id,
+        name: employee.username,
         employee_number: employee.employee_number,
       },
     ]);
@@ -195,10 +198,11 @@ export default function ApprovalPaths() {
               ) : (
                 <div className="p-2 space-y-1">
                   {filteredEmployees.map((emp) => {
-                    const added = isAlreadyAdded(emp.knox_id);
+                    const knox_id = extractKnoxId(emp.mail_knox);
+                    const added = isAlreadyAdded(emp.mail_knox);
                     return (
                       <div
-                        key={emp.knox_id}
+                        key={knox_id}
                         className={`flex items-center justify-between p-3 rounded-lg border ${
                           added
                             ? "bg-muted/50 border-muted"
@@ -207,9 +211,9 @@ export default function ApprovalPaths() {
                         onClick={() => !added && handleAddMember(emp)}
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{emp.name}</div>
+                          <div className="font-medium truncate">{emp.username || '-'}</div>
                           <div className="text-sm text-muted-foreground truncate">
-                            {emp.employee_number} | {emp.part}
+                            {emp.employee_number || '-'} | {emp.deptname_knox || '-'}
                           </div>
                         </div>
                         {added ? (
